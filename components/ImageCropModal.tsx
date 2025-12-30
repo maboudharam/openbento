@@ -27,6 +27,19 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
     originX: number;
     originY: number;
   } | null>(null);
+  const mouseDragRef = useRef<{
+    startX: number;
+    startY: number;
+    originX: number;
+    originY: number;
+  } | null>(null);
+  const touchDragRef = useRef<{
+    id: number;
+    startX: number;
+    startY: number;
+    originX: number;
+    originY: number;
+  } | null>(null);
 
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -120,6 +133,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!natural) return;
+    e.preventDefault();
     const target = e.currentTarget;
     target.setPointerCapture(e.pointerId);
     dragRef.current = {
@@ -134,6 +148,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== e.pointerId) return;
+    e.preventDefault();
     const dx = e.clientX - drag.startX;
     const dy = e.clientY - drag.startY;
     setOffset(clampOffset({ x: drag.originX + dx, y: drag.originY + dy }));
@@ -144,6 +159,81 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
     if (!drag || drag.pointerId !== e.pointerId) return;
     dragRef.current = null;
   };
+
+  const supportsPointerEvents = typeof window !== 'undefined' && 'PointerEvent' in window;
+
+  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (supportsPointerEvents) return;
+    if (!natural) return;
+    e.preventDefault();
+    mouseDragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: offset.x,
+      originY: offset.y,
+    };
+  };
+
+  const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (supportsPointerEvents) return;
+    if (!natural) return;
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+    e.preventDefault();
+    touchDragRef.current = {
+      id: touch.identifier,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      originX: offset.x,
+      originY: offset.y,
+    };
+  };
+
+  useEffect(() => {
+    if (supportsPointerEvents) return;
+    if (!isOpen) return;
+
+    const onMouseMove = (e: MouseEvent) => {
+      const drag = mouseDragRef.current;
+      if (!drag) return;
+      setOffset(clampOffset({ x: drag.originX + (e.clientX - drag.startX), y: drag.originY + (e.clientY - drag.startY) }));
+    };
+
+    const onMouseUp = () => {
+      mouseDragRef.current = null;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      const drag = touchDragRef.current;
+      if (!drag) return;
+      const touch = Array.from(e.changedTouches).find((t) => t.identifier === drag.id);
+      if (!touch) return;
+      e.preventDefault();
+      setOffset(clampOffset({ x: drag.originX + (touch.clientX - drag.startX), y: drag.originY + (touch.clientY - drag.startY) }));
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const drag = touchDragRef.current;
+      if (!drag) return;
+      const ended = Array.from(e.changedTouches).some((t) => t.identifier === drag.id);
+      if (!ended) return;
+      touchDragRef.current = null;
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+    window.addEventListener('touchcancel', onTouchEnd);
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchmove', onTouchMove as any);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [clampOffset, isOpen, supportsPointerEvents]);
 
   const adjustZoom = (delta: number) => {
     setZoom((z) => clamp(Math.round((z + delta) * 100) / 100, MIN_ZOOM, MAX_ZOOM));
@@ -224,6 +314,8 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
                   onPointerMove={onPointerMove}
                   onPointerUp={onPointerUp}
                   onPointerCancel={onPointerUp}
+                  onMouseDown={onMouseDown}
+                  onTouchStart={onTouchStart}
                   onWheel={handleWheel}
                   onDoubleClick={() => {
                     setZoom(1);
@@ -245,7 +337,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
                         setNatural({ w: el.naturalWidth, h: el.naturalHeight });
                       }}
                       onError={() => setLoadError('Failed to load this image. Try another file.')}
-                      className="absolute left-1/2 top-1/2 select-none"
+                      className="absolute left-1/2 top-1/2 select-none pointer-events-none"
                       style={{
                         width: natural ? `${natural.w}px` : undefined,
                         height: natural ? `${natural.h}px` : undefined,
