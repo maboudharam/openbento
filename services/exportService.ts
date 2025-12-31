@@ -836,7 +836,7 @@ const generateHtml = (data: SiteData, imageMap: Record<string, string>): string 
     // STANDARD TYPES
     else {
         switch (block.type) {
-            case BlockType.IMAGE:
+            case BlockType.MEDIA:
                 contentHtml = `<img src="${blockImageSrc}" class="full-img" alt="${block.title || ''}" />`;
                 break;
             case BlockType.MAP:

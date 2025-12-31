@@ -1,7 +1,7 @@
 export enum BlockType {
   LINK = 'LINK',
   TEXT = 'TEXT',
-  IMAGE = 'IMAGE',
+  MEDIA = 'MEDIA', // Images, GIFs, videos
   SOCIAL = 'SOCIAL',
   SOCIAL_ICON = 'SOCIAL_ICON', // Small icon-only social block for 9x9 grid
   MAP = 'MAP',

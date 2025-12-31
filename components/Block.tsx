@@ -162,7 +162,7 @@ const Block: React.FC<BlockProps> = ({
         if (block.content?.includes('instagram')) return <Instagram className="w-5 h-5" />;
         return <LinkIcon className="w-5 h-5" />;
       case BlockType.MAP: return <MapPin className="w-5 h-5" />;
-      case BlockType.IMAGE: return <ImageIcon className="w-5 h-5" />;
+      case BlockType.MEDIA: return <ImageIcon className="w-5 h-5" />;
       case BlockType.TEXT: return <Type className="w-5 h-5" />;
       case BlockType.SPACER: return <MoveVertical className="w-5 h-5" />;
       default: return <LinkIcon className="w-5 h-5" />;
@@ -568,8 +568,8 @@ const Block: React.FC<BlockProps> = ({
 
       <div className="w-full h-full pointer-events-none relative z-10">
         
-        {/* IMAGE/VIDEO/GIF BLOCK */}
-        {block.type === BlockType.IMAGE && block.imageUrl && !isLinkWithImage ? (
+        {/* MEDIA BLOCK (Image/Video/GIF) */}
+        {block.type === BlockType.MEDIA && block.imageUrl && !isLinkWithImage ? (
           <div className="w-full h-full relative overflow-hidden">
               {/* Check if it's a video or gif */}
               {/\.(mp4|webm|ogg|mov)$/i.test(block.imageUrl) ? (
