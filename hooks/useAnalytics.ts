@@ -70,7 +70,7 @@ export const useAnalytics = (config: AnalyticsConfig | undefined) => {
 
       try {
         const utm = new URLSearchParams(window.location.search);
-        
+
         // Payload format for the Edge Function
         const payload = {
           siteId: config.siteId,

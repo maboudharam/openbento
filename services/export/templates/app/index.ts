@@ -68,7 +68,7 @@ export const generateAppTsx = (data: SiteData, imageMap: ImageMap, siteId?: stri
   };
 
   // Site ID for analytics (use provided siteId or fallback)
-  const analyticsId = data.profile.analytics?.enabled ? (siteId || 'default') : '';
+  const analyticsId = data.profile.analytics?.enabled ? siteId || 'default' : '';
 
   // Assemble the complete App.tsx
   return `${generateImports()}
