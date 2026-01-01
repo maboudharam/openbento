@@ -7,9 +7,39 @@ import SettingsModal from './SettingsModal';
 import ImageCropModal from './ImageCropModal';
 import AvatarStyleModal from './AvatarStyleModal';
 import { exportSite, type ExportDeploymentTarget } from '../services/exportService';
-import { initializeApp, updateBentoData, setActiveBentoId, getBento, downloadBentoJSON, loadBentoFromFile, renameBento, GRID_VERSION } from '../services/storageService';
+import {
+  initializeApp,
+  updateBentoData,
+  setActiveBentoId,
+  getBento,
+  downloadBentoJSON,
+  loadBentoFromFile,
+  renameBento,
+  GRID_VERSION,
+} from '../services/storageService';
 import { getSocialPlatformOption, buildSocialUrl, formatFollowerCount } from '../socialPlatforms';
-import { Download, Layout, Share2, X, Check, Plus, Eye, Smartphone, Monitor, Home, Globe, BarChart3, RefreshCw, AlertTriangle, Settings, Upload, FileDown, Camera, Pencil, Palette } from 'lucide-react';
+import {
+  Download,
+  Layout,
+  Share2,
+  X,
+  Check,
+  Plus,
+  Eye,
+  Smartphone,
+  Monitor,
+  Home,
+  Globe,
+  BarChart3,
+  RefreshCw,
+  AlertTriangle,
+  Settings,
+  Upload,
+  FileDown,
+  Camera,
+  Pencil,
+  Palette,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface BuilderProps {
@@ -26,7 +56,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 // Old blocks had colSpan 1-3, new blocks use colSpan 1-9
 // Regular blocks (not SOCIAL_ICON) should take 3x3 cells minimum
 const migrateBlocksToNewGrid = (blocks: BlockData[]): BlockData[] => {
-  const needsMigration = blocks.some(b => {
+  const needsMigration = blocks.some((b) => {
     // SOCIAL_ICON and SPACER with 9 cols are already new format
     if (b.type === BlockType.SOCIAL_ICON) return false;
     if (b.type === BlockType.SPACER && b.colSpan === 9) return false;
@@ -37,7 +67,7 @@ const migrateBlocksToNewGrid = (blocks: BlockData[]): BlockData[] => {
 
   if (!needsMigration) return blocks;
 
-  return blocks.map(block => {
+  return blocks.map((block) => {
     // Skip new-format blocks
     if (block.type === BlockType.SOCIAL_ICON) return block;
     if (block.type === BlockType.SPACER && block.colSpan === 9) return block;
@@ -47,12 +77,9 @@ const migrateBlocksToNewGrid = (blocks: BlockData[]): BlockData[] => {
     const newRowSpan = Math.min(block.rowSpan * 3, MAX_ROW_SPAN);
 
     // Migrate positions: multiply by 3 and adjust for 1-based indexing
-    const newGridColumn = block.gridColumn !== undefined
-      ? (block.gridColumn - 1) * 3 + 1
-      : undefined;
-    const newGridRow = block.gridRow !== undefined
-      ? (block.gridRow - 1) * 3 + 1
-      : undefined;
+    const newGridColumn =
+      block.gridColumn !== undefined ? (block.gridColumn - 1) * 3 + 1 : undefined;
+    const newGridRow = block.gridRow !== undefined ? (block.gridRow - 1) * 3 + 1 : undefined;
 
     return {
       ...block,
@@ -65,7 +92,13 @@ const migrateBlocksToNewGrid = (blocks: BlockData[]): BlockData[] => {
 };
 
 const blocksOverlap = (a: BlockData, b: BlockData) => {
-  if (a.gridColumn === undefined || a.gridRow === undefined || b.gridColumn === undefined || b.gridRow === undefined) return false;
+  if (
+    a.gridColumn === undefined ||
+    a.gridRow === undefined ||
+    b.gridColumn === undefined ||
+    b.gridRow === undefined
+  )
+    return false;
 
   const aCols = Math.min(a.colSpan, GRID_COLS);
   const bCols = Math.min(b.colSpan, GRID_COLS);
@@ -75,7 +108,12 @@ const blocksOverlap = (a: BlockData, b: BlockData) => {
   const bRight = b.gridColumn + bCols;
   const bBottom = b.gridRow + b.rowSpan;
 
-  return !(aRight <= b.gridColumn || a.gridColumn >= bRight || aBottom <= b.gridRow || a.gridRow >= bBottom);
+  return !(
+    aRight <= b.gridColumn ||
+    a.gridColumn >= bRight ||
+    aBottom <= b.gridRow ||
+    a.gridRow >= bBottom
+  );
 };
 
 const getOccupiedCells = (blocks: BlockData[], excludeIds: string[] = []) => {
@@ -164,7 +202,13 @@ const ensureBlocksHavePositions = (blocks: BlockData[]) => {
       nextRowSpan !== block.rowSpan;
 
     const nextBlock = changed
-      ? { ...block, gridColumn: nextGridColumn, gridRow: nextGridRow, colSpan: nextColSpan, rowSpan: nextRowSpan }
+      ? {
+          ...block,
+          gridColumn: nextGridColumn,
+          gridRow: nextGridRow,
+          colSpan: nextColSpan,
+          rowSpan: nextRowSpan,
+        }
       : block;
 
     if (changed) didChange = true;
@@ -196,7 +240,13 @@ const ensureBlocksHavePositions = (blocks: BlockData[]) => {
     }
 
     const pos = found ?? { col: 1, row: GRID_MAX_SEARCH_ROWS + 1 };
-    const nextBlock = { ...block, gridColumn: pos.col, gridRow: pos.row, colSpan: nextColSpan, rowSpan: nextRowSpan };
+    const nextBlock = {
+      ...block,
+      gridColumn: pos.col,
+      gridRow: pos.row,
+      colSpan: nextColSpan,
+      rowSpan: nextRowSpan,
+    };
     markOccupied(nextBlock);
     didChange = true;
     return nextBlock;
@@ -205,12 +255,21 @@ const ensureBlocksHavePositions = (blocks: BlockData[]) => {
   return didChange ? placed : blocks;
 };
 
-const resizeBlockAndResolve = (blocks: BlockData[], blockId: string, requestedColSpan: number, requestedRowSpan: number) => {
+const resizeBlockAndResolve = (
+  blocks: BlockData[],
+  blockId: string,
+  requestedColSpan: number,
+  requestedRowSpan: number
+) => {
   const target = blocks.find((b) => b.id === blockId);
   if (!target || target.gridColumn === undefined || target.gridRow === undefined) return blocks;
 
   // Clamp to grid bounds (9 cols, unlimited rows)
-  const colSpan = clamp(requestedColSpan, 1, Math.min(GRID_COLS - target.gridColumn + 1, GRID_COLS));
+  const colSpan = clamp(
+    requestedColSpan,
+    1,
+    Math.min(GRID_COLS - target.gridColumn + 1, GRID_COLS)
+  );
   const rowSpan = clamp(requestedRowSpan, 1, MAX_ROW_SPAN);
 
   if (colSpan === target.colSpan && rowSpan === target.rowSpan) return blocks;
@@ -237,7 +296,7 @@ const reflowGrid = (blocks: BlockData[]): BlockData[] => {
   });
 
   // Clear all positions and re-place using auto-placement
-  const cleared = sorted.map(b => ({ ...b, gridColumn: undefined, gridRow: undefined }));
+  const cleared = sorted.map((b) => ({ ...b, gridColumn: undefined, gridRow: undefined }));
 
   // Use ensureBlocksHavePositions to re-place all blocks
   return ensureBlocksHavePositions(cleared as BlockData[]);
@@ -357,7 +416,7 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
   const [supabaseSetupRunning, setSupabaseSetupRunning] = useState(false);
   const [supabaseSetupError, setSupabaseSetupError] = useState<string | null>(null);
   const [supabaseSetupResult, setSupabaseSetupResult] = useState<any>(null);
-  
+
   const [draggedBlockId, setDraggedBlockId] = useState<string | null>(null);
   const [dragOverBlockId, setDragOverBlockId] = useState<string | null>(null);
   const [dragOverSlotIndex, setDragOverSlotIndex] = useState<number | null>(null);
@@ -391,18 +450,26 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
         const bento = await initializeApp();
         const dataGridVersion = bento.data.gridVersion ?? GRID_VERSION;
         // Migrate blocks from old 3-col grid to new 9-col grid (legacy only)
-        const migratedBlocks = dataGridVersion < GRID_VERSION
-          ? migrateBlocksToNewGrid(bento.data.blocks)
-          : bento.data.blocks;
+        const migratedBlocks =
+          dataGridVersion < GRID_VERSION
+            ? migrateBlocksToNewGrid(bento.data.blocks)
+            : bento.data.blocks;
         const normalizedBlocks = ensureBlocksHavePositions(migratedBlocks);
         const nextGridVersion = GRID_VERSION;
-        setActiveBento({ ...bento, data: { ...bento.data, blocks: normalizedBlocks, gridVersion: nextGridVersion } });
+        setActiveBento({
+          ...bento,
+          data: { ...bento.data, blocks: normalizedBlocks, gridVersion: nextGridVersion },
+        });
         setProfile(bento.data.profile);
         setGridVersion(nextGridVersion);
         setBlocks(normalizedBlocks);
         // Save migrated/normalized blocks if they changed
         if (normalizedBlocks !== bento.data.blocks || nextGridVersion !== bento.data.gridVersion) {
-          updateBentoData(bento.id, { profile: bento.data.profile, blocks: normalizedBlocks, gridVersion: nextGridVersion });
+          updateBentoData(bento.id, {
+            profile: bento.data.profile,
+            blocks: normalizedBlocks,
+            gridVersion: nextGridVersion,
+          });
         }
       } catch (e) {
         console.error('Failed to load bento:', e);
@@ -414,73 +481,93 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
   }, []);
 
   // Auto-save function - immediate save with status indicator
-  const autoSave = useCallback((newProfile: UserProfile, newBlocks: BlockData[]) => {
-    if (!activeBento) return;
+  const autoSave = useCallback(
+    (newProfile: UserProfile, newBlocks: BlockData[]) => {
+      if (!activeBento) return;
 
-    setSaveStatus('saving');
+      setSaveStatus('saving');
 
-    // Save immediately
-    updateBentoData(activeBento.id, {
-      profile: newProfile,
-      blocks: newBlocks,
-      gridVersion
-    });
+      // Save immediately
+      updateBentoData(activeBento.id, {
+        profile: newProfile,
+        blocks: newBlocks,
+        gridVersion,
+      });
 
-    // Show "saved" status briefly
-    setTimeout(() => {
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 1500);
-    }, 300);
-  }, [activeBento, gridVersion]);
+      // Show "saved" status briefly
+      setTimeout(() => {
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 1500);
+      }, 300);
+    },
+    [activeBento, gridVersion]
+  );
 
   // Handle profile changes with auto-save
-  const handleSetProfile = useCallback((newProfile: UserProfile | ((prev: UserProfile) => UserProfile)) => {
-    setProfile(prev => {
-      const updated = typeof newProfile === 'function' ? newProfile(prev!) : newProfile;
-      autoSave(updated, blocks);
-      return updated;
-    });
-  }, [blocks, autoSave]);
+  const handleSetProfile = useCallback(
+    (newProfile: UserProfile | ((prev: UserProfile) => UserProfile)) => {
+      setProfile((prev) => {
+        const updated = typeof newProfile === 'function' ? newProfile(prev!) : newProfile;
+        autoSave(updated, blocks);
+        return updated;
+      });
+    },
+    [blocks, autoSave]
+  );
 
   // Handle blocks changes with auto-save - always resolve overlaps
-  const handleSetBlocks = useCallback((newBlocks: BlockData[] | ((prev: BlockData[]) => BlockData[])) => {
-    setBlocks(prev => {
-      const updated = typeof newBlocks === 'function' ? newBlocks(prev) : newBlocks;
-      const normalized = ensureBlocksHavePositions(updated);
-      // Always resolve any overlaps to prevent blocks from stacking
-      const resolved = resolveOverlaps(normalized);
-      if (profile) autoSave(profile, resolved);
-      return resolved;
-    });
-  }, [profile, autoSave]);
+  const handleSetBlocks = useCallback(
+    (newBlocks: BlockData[] | ((prev: BlockData[]) => BlockData[])) => {
+      setBlocks((prev) => {
+        const updated = typeof newBlocks === 'function' ? newBlocks(prev) : newBlocks;
+        const normalized = ensureBlocksHavePositions(updated);
+        // Always resolve any overlaps to prevent blocks from stacking
+        const resolved = resolveOverlaps(normalized);
+        if (profile) autoSave(profile, resolved);
+        return resolved;
+      });
+    },
+    [profile, autoSave]
+  );
 
   // Note: Block positioning is handled when blocks are created (addBlock function)
   // No automatic repositioning to avoid conflicts with user-placed blocks
 
   // Handle bento change from dropdown
-  const handleBentoChange = useCallback((bento: SavedBento) => {
-    // Save current before switching
-    if (activeBento && profile) {
-      updateBentoData(activeBento.id, { profile, blocks, gridVersion });
-    }
+  const handleBentoChange = useCallback(
+    (bento: SavedBento) => {
+      // Save current before switching
+      if (activeBento && profile) {
+        updateBentoData(activeBento.id, { profile, blocks, gridVersion });
+      }
 
-    const dataGridVersion = bento.data.gridVersion ?? GRID_VERSION;
-    const migratedBlocks = dataGridVersion < GRID_VERSION
-      ? migrateBlocksToNewGrid(bento.data.blocks)
-      : bento.data.blocks;
-    const normalizedBlocks = ensureBlocksHavePositions(migratedBlocks);
-    const nextGridVersion = GRID_VERSION;
-    setGridVersion(nextGridVersion);
-    setActiveBentoId(bento.id);
-    setActiveBento({ ...bento, data: { ...bento.data, blocks: normalizedBlocks, gridVersion: nextGridVersion } });
-    setProfile(bento.data.profile);
-    setBlocks(normalizedBlocks);
-    setEditingBlockId(null);
+      const dataGridVersion = bento.data.gridVersion ?? GRID_VERSION;
+      const migratedBlocks =
+        dataGridVersion < GRID_VERSION
+          ? migrateBlocksToNewGrid(bento.data.blocks)
+          : bento.data.blocks;
+      const normalizedBlocks = ensureBlocksHavePositions(migratedBlocks);
+      const nextGridVersion = GRID_VERSION;
+      setGridVersion(nextGridVersion);
+      setActiveBentoId(bento.id);
+      setActiveBento({
+        ...bento,
+        data: { ...bento.data, blocks: normalizedBlocks, gridVersion: nextGridVersion },
+      });
+      setProfile(bento.data.profile);
+      setBlocks(normalizedBlocks);
+      setEditingBlockId(null);
 
-    if (normalizedBlocks !== bento.data.blocks || nextGridVersion !== bento.data.gridVersion) {
-      updateBentoData(bento.id, { profile: bento.data.profile, blocks: normalizedBlocks, gridVersion: nextGridVersion });
-    }
-  }, [activeBento, profile, blocks, gridVersion]);
+      if (normalizedBlocks !== bento.data.blocks || nextGridVersion !== bento.data.gridVersion) {
+        updateBentoData(bento.id, {
+          profile: bento.data.profile,
+          blocks: normalizedBlocks,
+          gridVersion: nextGridVersion,
+        });
+      }
+    },
+    [activeBento, profile, blocks, gridVersion]
+  );
 
   const addBlock = (type: BlockType) => {
     // Check for pending position from grid cell click
@@ -510,16 +597,32 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
     const newBlock: BlockData = {
       id: Math.random().toString(36).substr(2, 9),
       type,
-      title: type === BlockType.SOCIAL ? 'X' : type === BlockType.SOCIAL_ICON ? '' : type === BlockType.MAP ? 'Location' : type === BlockType.SPACER ? 'Spacer' : 'New Block',
+      title:
+        type === BlockType.SOCIAL
+          ? 'X'
+          : type === BlockType.SOCIAL_ICON
+            ? ''
+            : type === BlockType.MAP
+              ? 'Location'
+              : type === BlockType.SPACER
+                ? 'Spacer'
+                : 'New Block',
       content: '',
       colSpan,
       rowSpan,
-      color: type === BlockType.SPACER ? 'bg-transparent' : type === BlockType.SOCIAL_ICON ? 'bg-gray-100' : 'bg-white',
+      color:
+        type === BlockType.SPACER
+          ? 'bg-transparent'
+          : type === BlockType.SOCIAL_ICON
+            ? 'bg-gray-100'
+            : 'bg-white',
       textColor: 'text-gray-900',
       gridColumn: gridPosition.col,
       gridRow: gridPosition.row,
       ...(type === BlockType.SOCIAL ? { socialPlatform: 'x' as const, socialHandle: '' } : {}),
-      ...(type === BlockType.SOCIAL_ICON ? { socialPlatform: 'instagram' as const, socialHandle: '' } : {}),
+      ...(type === BlockType.SOCIAL_ICON
+        ? { socialPlatform: 'instagram' as const, socialHandle: '' }
+        : {}),
     };
     handleSetBlocks([...blocks, newBlock]);
     setEditingBlockId(newBlock.id);
@@ -527,13 +630,12 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
   };
 
   const updateBlock = (updatedBlock: BlockData) => {
-    const oldBlock = blocks.find(b => b.id === updatedBlock.id);
-    const sizeChanged = oldBlock && (
-      oldBlock.colSpan !== updatedBlock.colSpan ||
-      oldBlock.rowSpan !== updatedBlock.rowSpan
-    );
+    const oldBlock = blocks.find((b) => b.id === updatedBlock.id);
+    const sizeChanged =
+      oldBlock &&
+      (oldBlock.colSpan !== updatedBlock.colSpan || oldBlock.rowSpan !== updatedBlock.rowSpan);
 
-    const updatedBlocks = blocks.map(b => b.id === updatedBlock.id ? updatedBlock : b);
+    const updatedBlocks = blocks.map((b) => (b.id === updatedBlock.id ? updatedBlock : b));
 
     // If size changed, reflow the entire grid to compact it
     if (sizeChanged) {
@@ -544,7 +646,7 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
   };
 
   const deleteBlock = (id: string) => {
-    const remaining = blocks.filter(b => b.id !== id);
+    const remaining = blocks.filter((b) => b.id !== id);
     // Reflow to compact the grid after deletion
     handleSetBlocks(reflowGrid(remaining));
     if (editingBlockId === id) setEditingBlockId(null);
@@ -562,7 +664,7 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
     // Update bento with current state before exporting
     const currentBento = {
       ...activeBento,
-      data: { profile, blocks, gridVersion }
+      data: { profile, blocks, gridVersion },
     };
     downloadBentoJSON(currentBento);
   };
@@ -575,17 +677,25 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
     try {
       const bento = await loadBentoFromFile(file);
       const dataGridVersion = bento.data.gridVersion ?? GRID_VERSION;
-      const migratedBlocks = dataGridVersion < GRID_VERSION
-        ? migrateBlocksToNewGrid(bento.data.blocks)
-        : bento.data.blocks;
+      const migratedBlocks =
+        dataGridVersion < GRID_VERSION
+          ? migrateBlocksToNewGrid(bento.data.blocks)
+          : bento.data.blocks;
       const normalizedBlocks = ensureBlocksHavePositions(migratedBlocks);
       const nextGridVersion = GRID_VERSION;
       setGridVersion(nextGridVersion);
-      setActiveBento({ ...bento, data: { ...bento.data, blocks: normalizedBlocks, gridVersion: nextGridVersion } });
+      setActiveBento({
+        ...bento,
+        data: { ...bento.data, blocks: normalizedBlocks, gridVersion: nextGridVersion },
+      });
       setProfile(bento.data.profile);
       setBlocks(normalizedBlocks);
       setEditingBlockId(null);
-      updateBentoData(bento.id, { profile: bento.data.profile, blocks: normalizedBlocks, gridVersion: nextGridVersion });
+      updateBentoData(bento.id, {
+        profile: bento.data.profile,
+        blocks: normalizedBlocks,
+        gridVersion: nextGridVersion,
+      });
     } catch (err) {
       console.error('Failed to import bento:', err);
       alert('Failed to import bento. Please check the JSON file.');
@@ -613,14 +723,28 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
   // Get avatar style classes
   const getAvatarClasses = (style?: AvatarStyle) => {
     const s = style || { shape: 'rounded', shadow: true, border: true };
-    const classes: string[] = ['w-full', 'h-full', 'object-cover', 'transition-transform', 'duration-500', 'group-hover:scale-110'];
+    const classes: string[] = [
+      'w-full',
+      'h-full',
+      'object-cover',
+      'transition-transform',
+      'duration-500',
+      'group-hover:scale-110',
+    ];
     return classes.join(' ');
   };
 
   // Get avatar container classes based on style
   const getAvatarContainerClasses = (style?: AvatarStyle) => {
     const s = style || { shape: 'rounded', shadow: true, border: true };
-    const classes: string[] = ['w-40', 'h-40', 'overflow-hidden', 'relative', 'z-10', 'bg-gray-100'];
+    const classes: string[] = [
+      'w-40',
+      'h-40',
+      'overflow-hidden',
+      'relative',
+      'z-10',
+      'bg-gray-100',
+    ];
 
     // Shape
     if (s.shape === 'circle') classes.push('rounded-full');
@@ -635,7 +759,13 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
 
   // Get avatar container style
   const getAvatarContainerStyle = (style?: AvatarStyle): React.CSSProperties => {
-    const s = style || { shape: 'rounded', shadow: true, border: true, borderColor: '#ffffff', borderWidth: 4 };
+    const s = style || {
+      shape: 'rounded',
+      shadow: true,
+      border: true,
+      borderColor: '#ffffff',
+      borderWidth: 4,
+    };
     const styles: React.CSSProperties = {};
 
     if (s.border) {
@@ -647,7 +777,7 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
 
   // Handle avatar style change
   const handleAvatarStyleChange = (newStyle: AvatarStyle) => {
-    handleSetProfile(prev => ({ ...prev, avatarStyle: newStyle }));
+    handleSetProfile((prev) => ({ ...prev, avatarStyle: newStyle }));
   };
 
   // Start inline editing
@@ -666,13 +796,13 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
   // Save inline edits
   const saveNameEdit = () => {
     if (tempName.trim()) {
-      handleSetProfile(prev => ({ ...prev, name: tempName.trim() }));
+      handleSetProfile((prev) => ({ ...prev, name: tempName.trim() }));
     }
     setEditingField(null);
   };
 
   const saveBioEdit = () => {
-    handleSetProfile(prev => ({ ...prev, bio: tempBio }));
+    handleSetProfile((prev) => ({ ...prev, bio: tempBio }));
     setEditingField(null);
   };
 
@@ -709,7 +839,7 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
     try {
       await exportSite(
         { profile, blocks },
-        { siteId: activeBento?.id, deploymentTarget: deployTarget },
+        { siteId: activeBento?.id, deploymentTarget: deployTarget }
       );
       setHasDownloadedExport(true);
     } catch (e) {
@@ -857,12 +987,14 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
 
     try {
       const url = profile.analytics?.supabaseUrl?.trim() || '';
-      const projectRef = supabaseSetupProjectRef.trim() || (url ? inferProjectRefFromSupabaseUrl(url) : '');
+      const projectRef =
+        supabaseSetupProjectRef.trim() || (url ? inferProjectRefFromSupabaseUrl(url) : '');
       if (!projectRef) throw new Error('Missing project ref (set it first).');
 
       const endpoint = new URL('/__openbento/supabase/status', window.location.origin);
       endpoint.searchParams.set('projectRef', projectRef);
-      if (analyticsAdminToken.trim()) endpoint.searchParams.set('adminToken', analyticsAdminToken.trim());
+      if (analyticsAdminToken.trim())
+        endpoint.searchParams.set('adminToken', analyticsAdminToken.trim());
 
       const res = await fetch(endpoint.toString());
       const json = await res.json().catch(() => ({}));
@@ -888,8 +1020,8 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
   }, [analyticsAdminToken]);
 
   const closeSidebar = () => {
-      setEditingBlockId(null);
-      setIsSidebarOpen(false);
+    setEditingBlockId(null);
+    setIsSidebarOpen(false);
   };
 
   const handleDragStart = (id: string) => {
@@ -918,23 +1050,22 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
 
   const handleDrop = (targetId: string) => {
     if (!draggedBlockId || draggedBlockId === targetId) {
-        handleDragEnd();
-        return;
+      handleDragEnd();
+      return;
     }
-    const sourceIndex = blocks.findIndex(b => b.id === draggedBlockId);
-    const targetIndex = blocks.findIndex(b => b.id === targetId);
+    const sourceIndex = blocks.findIndex((b) => b.id === draggedBlockId);
+    const targetIndex = blocks.findIndex((b) => b.id === targetId);
 
     if (sourceIndex === -1 || targetIndex === -1) {
-        handleDragEnd();
-        return;
+      handleDragEnd();
+      return;
     }
-    
+
     const sourceBlock = blocks[sourceIndex];
     const targetBlock = blocks[targetIndex];
 
-    
     // Move source block to target's position
-    let newBlocks = blocks.map(b => {
+    let newBlocks = blocks.map((b) => {
       if (b.id === sourceBlock.id) {
         return {
           ...b,
@@ -944,22 +1075,22 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
       }
       return b;
     });
-    
+
     // Find all blocks that now conflict with the moved source block
-    const movedSource = newBlocks.find(b => b.id === sourceBlock.id)!;
-    
+    const movedSource = newBlocks.find((b) => b.id === sourceBlock.id)!;
+
     // Find conflicting blocks and relocate them
-    const conflictingBlocks = newBlocks.filter(b => 
-      b.id !== movedSource.id && blocksOverlap(movedSource, b)
+    const conflictingBlocks = newBlocks.filter(
+      (b) => b.id !== movedSource.id && blocksOverlap(movedSource, b)
     );
-    
+
     if (conflictingBlocks.length > 0) {
       // Relocate each conflicting block one by one
-      conflictingBlocks.forEach(conflictBlock => {
+      conflictingBlocks.forEach((conflictBlock) => {
         const occupiedCells = getOccupiedCells(newBlocks, [conflictBlock.id]);
         const newPos = findNextAvailablePosition(conflictBlock, occupiedCells);
-        
-        newBlocks = newBlocks.map(b => {
+
+        newBlocks = newBlocks.map((b) => {
           if (b.id === conflictBlock.id) {
             return { ...b, gridColumn: newPos.col, gridRow: newPos.row };
           }
@@ -967,7 +1098,7 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
         });
       });
     }
-    
+
     handleSetBlocks(newBlocks);
     handleDragEnd();
   };
@@ -977,19 +1108,19 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
       handleDragEnd();
       return;
     }
-    const sourceIndex = blocks.findIndex(b => b.id === draggedBlockId);
+    const sourceIndex = blocks.findIndex((b) => b.id === draggedBlockId);
     if (sourceIndex === -1) {
       handleDragEnd();
       return;
     }
-    
+
     const newBlocks = [...blocks];
     const [movedBlock] = newBlocks.splice(sourceIndex, 1);
-    
+
     // Adjust target index if source was before target
     const adjustedIndex = sourceIndex < slotIndex ? slotIndex - 1 : slotIndex;
     newBlocks.splice(adjustedIndex, 0, movedBlock);
-    
+
     handleSetBlocks(newBlocks);
     handleDragEnd();
   };
@@ -1034,7 +1165,9 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
       };
 
       // Disable native drag immediately on the block element.
-      const blockEl = (e.currentTarget as HTMLElement).closest('[data-block-id]') as HTMLElement | null;
+      const blockEl = (e.currentTarget as HTMLElement).closest(
+        '[data-block-id]'
+      ) as HTMLElement | null;
       if (blockEl) blockEl.setAttribute('draggable', 'false');
 
       const previousCursor = document.body.style.cursor;
@@ -1058,7 +1191,9 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
         session.lastColSpan = nextColSpan;
         session.lastRowSpan = nextRowSpan;
 
-        handleSetBlocks((prev) => resizeBlockAndResolve(prev, session.blockId, nextColSpan, nextRowSpan));
+        handleSetBlocks((prev) =>
+          resizeBlockAndResolve(prev, session.blockId, nextColSpan, nextRowSpan)
+        );
       };
 
       const onEnd = () => {
@@ -1082,10 +1217,10 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
         // ignore
       }
     },
-    [getGridCellFromPointer, handleSetBlocks, viewMode],
+    [getGridCellFromPointer, handleSetBlocks, viewMode]
   );
 
-  const editingBlock = blocks.find(b => b.id === editingBlockId) || null;
+  const editingBlock = blocks.find((b) => b.id === editingBlockId) || null;
 
   // Loading state
   if (isLoading || !profile) {
@@ -1123,118 +1258,123 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
 
       {/* 1. MAIN PREVIEW CANVAS */}
       <div className="flex-1 relative min-h-screen z-10">
-        
         {/* Floating Navbar */}
         <nav className="fixed top-4 left-4 right-4 z-40 pointer-events-none">
-           <div className="max-w-[1800px] mx-auto flex justify-between items-center">
-              
-              {/* Logo Pill */}
-              <div className="bg-white px-2 py-2 rounded-2xl shadow-sm border border-gray-200 flex gap-2 items-center pointer-events-auto select-none">
-                 {onBack && (
-                   <button onClick={onBack} className="w-9 h-9 bg-gray-900 text-white rounded-xl flex items-center justify-center hover:bg-black transition-colors shadow-sm" title="Back to Home">
-                      <Home size={16} />
-                   </button>
-                 )}
-                 <span className="font-bold text-gray-800 tracking-tight px-1">OpenBento</span>
-                 <div className="h-6 w-px bg-gray-200 mx-1"></div>
-                 {/* Profile Dropdown */}
-                 {activeBento && (
-                   <ProfileDropdown
-                     activeBentoId={activeBento.id}
-                     activeBentoName={activeBento.name}
-                     onBentoChange={handleBentoChange}
-                   />
-                 )}
-                 <div className="h-6 w-px bg-gray-200 mx-1"></div>
-                 <div className="flex bg-gray-100/80 p-1 rounded-xl gap-0.5">
-                     <button 
-                        onClick={() => setViewMode('desktop')}
-                        className={`p-2 rounded-lg transition-all ${viewMode === 'desktop' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
-                     >
-                         <Monitor size={16}/>
-                     </button>
-                     <button 
-                        onClick={() => setViewMode('mobile')}
-                        className={`p-2 rounded-lg transition-all ${viewMode === 'mobile' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
-                     >
-                         <Smartphone size={16}/>
-                     </button>
-                 </div>
+          <div className="max-w-[1800px] mx-auto flex justify-between items-center">
+            {/* Logo Pill */}
+            <div className="bg-white px-2 py-2 rounded-2xl shadow-sm border border-gray-200 flex gap-2 items-center pointer-events-auto select-none">
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="w-9 h-9 bg-gray-900 text-white rounded-xl flex items-center justify-center hover:bg-black transition-colors shadow-sm"
+                  title="Back to Home"
+                >
+                  <Home size={16} />
+                </button>
+              )}
+              <span className="font-bold text-gray-800 tracking-tight px-1">OpenBento</span>
+              <div className="h-6 w-px bg-gray-200 mx-1"></div>
+              {/* Profile Dropdown */}
+              {activeBento && (
+                <ProfileDropdown
+                  activeBentoId={activeBento.id}
+                  activeBentoName={activeBento.name}
+                  onBentoChange={handleBentoChange}
+                />
+              )}
+              <div className="h-6 w-px bg-gray-200 mx-1"></div>
+              <div className="flex bg-gray-100/80 p-1 rounded-xl gap-0.5">
+                <button
+                  onClick={() => setViewMode('desktop')}
+                  className={`p-2 rounded-lg transition-all ${viewMode === 'desktop' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  <Monitor size={16} />
+                </button>
+                <button
+                  onClick={() => setViewMode('mobile')}
+                  className={`p-2 rounded-lg transition-all ${viewMode === 'mobile' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  <Smartphone size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Actions Pill */}
+            <div className="flex gap-2 pointer-events-auto">
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="bg-white px-3.5 py-2 rounded-lg shadow-sm border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+              >
+                {isSidebarOpen ? <Eye size={16} /> : <Layout size={16} />}
+                <span className="hidden sm:inline">{isSidebarOpen ? 'Preview' : 'Edit'}</span>
+              </button>
+
+              <button
+                onClick={() => setShowSettingsModal(true)}
+                className="bg-white px-3.5 py-2 rounded-lg shadow-sm border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                title="Open settings"
+              >
+                <Settings size={16} />
+                <span className="hidden sm:inline">Settings</span>
+              </button>
+
+              {import.meta.env.DEV && (
+                <button
+                  onClick={() => {
+                    const previewPath = `${import.meta.env.BASE_URL}preview`;
+                    window.open(previewPath, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="bg-white px-3.5 py-2 rounded-lg shadow-sm border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                  title="Open preview page"
+                >
+                  <Globe size={16} />
+                  <span className="hidden sm:inline">Preview</span>
+                </button>
+              )}
+
+              {(import.meta.env.DEV || profile?.analytics?.enabled) && (
+                <a
+                  href="/analytics"
+                  className="bg-white px-3.5 py-2 rounded-lg shadow-sm border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                  title="View analytics dashboard"
+                >
+                  <BarChart3 size={16} />
+                  <span className="hidden sm:inline">Analytics</span>
+                </a>
+              )}
+
+              {/* JSON Import/Export */}
+              <div className="flex items-center gap-1 border-r border-gray-200 pr-3 mr-1">
+                <button
+                  onClick={handleExportJSON}
+                  className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                  title="Export as JSON"
+                >
+                  <FileDown size={16} />
+                </button>
+                <label
+                  className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
+                  title="Import JSON"
+                >
+                  <Upload size={16} />
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    onChange={handleImportJSON}
+                    className="hidden"
+                  />
+                </label>
               </div>
 
-              {/* Actions Pill */}
-              <div className="flex gap-2 pointer-events-auto">
-	                 <button 
-	                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-	                   className="bg-white px-3.5 py-2 rounded-lg shadow-sm border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-	                 >
-	                    {isSidebarOpen ? <Eye size={16}/> : <Layout size={16}/>}
-	                    <span className="hidden sm:inline">{isSidebarOpen ? 'Preview' : 'Edit'}</span>
-	                 </button>
-
-	                 <button
-	                   onClick={() => setShowSettingsModal(true)}
-	                   className="bg-white px-3.5 py-2 rounded-lg shadow-sm border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-	                   title="Open settings"
-	                 >
-	                   <Settings size={16} />
-	                   <span className="hidden sm:inline">Settings</span>
-	                 </button>
-
-	                 {import.meta.env.DEV && (
-	                   <button
-                     onClick={() => {
-                      const previewPath = `${import.meta.env.BASE_URL}preview`;
-                      window.open(previewPath, '_blank', 'noopener,noreferrer');
-                     }}
-	                     className="bg-white px-3.5 py-2 rounded-lg shadow-sm border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-	                     title="Open preview page"
-	                   >
-	                     <Globe size={16} />
-	                     <span className="hidden sm:inline">Preview</span>
-	                   </button>
-	                 )}
-
-	                 {(import.meta.env.DEV || profile?.analytics?.enabled) && (
-	                   <a
-                     href="/analytics"
-	                     className="bg-white px-3.5 py-2 rounded-lg shadow-sm border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-	                     title="View analytics dashboard"
-	                   >
-	                     <BarChart3 size={16} />
-	                     <span className="hidden sm:inline">Analytics</span>
-	                   </a>
-	                 )}
-                 
-                 {/* JSON Import/Export */}
-                 <div className="flex items-center gap-1 border-r border-gray-200 pr-3 mr-1">
-                   <button
-                     onClick={handleExportJSON}
-                     className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                     title="Export as JSON"
-                   >
-                     <FileDown size={16} />
-                   </button>
-                   <label className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer" title="Import JSON">
-                     <Upload size={16} />
-                     <input
-                       type="file"
-                       accept=".json,application/json"
-                       onChange={handleImportJSON}
-                       className="hidden"
-                     />
-                   </label>
-                 </div>
-
-	                 <button
-	                   onClick={handleExport}
-	                   className="bg-gray-900 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-black transition-colors text-xs font-semibold flex items-center gap-2"
-	                 >
-	                    <Download size={16} />
-	                    <span className="hidden sm:inline">Deploy</span>
-	                 </button>
-              </div>
-           </div>
+              <button
+                onClick={handleExport}
+                className="bg-gray-900 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-black transition-colors text-xs font-semibold flex items-center gap-2"
+              >
+                <Download size={16} />
+                <span className="hidden sm:inline">Deploy</span>
+              </button>
+            </div>
+          </div>
         </nav>
 
         {/* LEFT: Profile Header (Fixed on Desktop) */}
@@ -1254,9 +1394,15 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
                   style={getAvatarContainerStyle(profile.avatarStyle)}
                 >
                   {profile.avatarUrl ? (
-                    <img src={profile.avatarUrl} alt={profile.name} className={getAvatarClasses(profile.avatarStyle)} />
+                    <img
+                      src={profile.avatarUrl}
+                      alt={profile.name}
+                      className={getAvatarClasses(profile.avatarStyle)}
+                    />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl font-bold">{profile.name.charAt(0)}</div>
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl font-bold">
+                      {profile.name.charAt(0)}
+                    </div>
                   )}
                   {/* Overlay with action icons */}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
@@ -1314,7 +1460,10 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
                     <h1 className="text-4xl font-bold tracking-tight text-gray-900 group-hover:text-violet-600 transition-colors leading-[1.1]">
                       {profile.name}
                     </h1>
-                    <Pencil size={16} className="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Pencil
+                      size={16}
+                      className="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                    />
                   </div>
                 )}
 
@@ -1336,42 +1485,53 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
                     onClick={startEditingBio}
                   >
                     <span className="flex-1">{profile.bio || 'Click to add bio...'}</span>
-                    <Pencil size={14} className="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity mt-1 shrink-0" />
+                    <Pencil
+                      size={14}
+                      className="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity mt-1 shrink-0"
+                    />
                   </p>
                 )}
 
                 {/* Social icons row */}
-                {profile.showSocialInHeader && profile.socialAccounts && profile.socialAccounts.length > 0 && (
-                  <div className="flex flex-wrap gap-3 mt-4">
-                    {profile.socialAccounts.map((account) => {
-                      const option = getSocialPlatformOption(account.platform);
-                      if (!option) return null;
-                      const BrandIcon = option.brandIcon;
-                      const FallbackIcon = option.icon;
-                      const url = buildSocialUrl(account.platform, account.handle);
-                      const showCount = profile.showFollowerCount && account.followerCount;
-                      return (
-                        <a
-                          key={account.platform}
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`${showCount ? 'px-3 py-2 rounded-full' : 'w-10 h-10 rounded-full'} bg-white shadow-md flex items-center justify-center gap-2 hover:scale-105 hover:shadow-lg transition-all`}
-                          title={option.label}
-                        >
-                          {BrandIcon ? (
-                            <BrandIcon size={20} style={{ color: option.brandColor }} />
-                          ) : (
-                            <FallbackIcon size={20} className="text-gray-600" />
-                          )}
-                          {showCount && (
-                            <span className="text-sm font-semibold text-gray-700">{formatFollowerCount(account.followerCount)}</span>
-                          )}
-                        </a>
-                      );
-                    })}
-                  </div>
-                )}
+                {profile.showSocialInHeader &&
+                  profile.socialAccounts &&
+                  profile.socialAccounts.length > 0 && (
+                    <div className="flex flex-wrap gap-3 mt-4">
+                      {profile.socialAccounts.map((account) => {
+                        const option = getSocialPlatformOption(account.platform);
+                        if (!option) return null;
+                        const BrandIcon = option.brandIcon;
+                        const FallbackIcon = option.icon;
+                        const url = buildSocialUrl(account.platform, account.handle);
+                        const showCount = profile.showFollowerCount && account.followerCount;
+                        return (
+                          <a
+                            key={account.platform}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`${showCount ? 'px-3 py-2 rounded-full' : 'w-10 h-10 rounded-full'} bg-white shadow-md flex items-center justify-center gap-2 hover:scale-105 hover:shadow-lg transition-all`}
+                            title={option.label}
+                          >
+                            {BrandIcon ? (
+                              <span style={{ color: option.brandColor }}>
+                                <BrandIcon size={20} />
+                              </span>
+                            ) : (
+                              <span className="text-gray-600">
+                                <FallbackIcon size={20} />
+                              </span>
+                            )}
+                            {showCount && (
+                              <span className="text-sm font-semibold text-gray-700">
+                                {formatFollowerCount(account.followerCount)}
+                              </span>
+                            )}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
               </div>
             </motion.div>
           </div>
@@ -1379,309 +1539,431 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
 
         {/* Content Area */}
         <div className="w-full min-h-screen">
-            
-            <div className={`max-w-[1600px] mx-auto`}>
+          <div className={`max-w-[1600px] mx-auto`}>
+            {/* RIGHT: Grid (Scrollable or Mobile Frame) */}
+            <div
+              className={`p-4 lg:p-12 pt-24 lg:pt-24 transition-all duration-300 ${viewMode === 'desktop' ? 'lg:ml-[420px]' : ''} ${viewMode === 'mobile' ? 'flex justify-center items-start min-h-screen bg-gray-100/50' : ''}`}
+            >
+              {viewMode === 'mobile' ? (
+                /* MOBILE FRAME - Matches export mobile layout (single column, stacked) */
+                (() => {
+                  // Sort blocks by grid position (row first, then column) for correct visual order
+                  // This matches the export's sortedBlocks logic
+                  const sortedMobileBlocks = [...blocks].sort((a, b) => {
+                    const aRow = a.gridRow ?? 999;
+                    const bRow = b.gridRow ?? 999;
+                    const aCol = a.gridColumn ?? 999;
+                    const bCol = b.gridColumn ?? 999;
+                    if (aRow !== bRow) return aRow - bRow;
+                    return aCol - bCol;
+                  });
 
-                {/* RIGHT: Grid (Scrollable or Mobile Frame) */}
-                <div className={`p-4 lg:p-12 pt-24 lg:pt-24 transition-all duration-300 ${viewMode === 'desktop' ? 'lg:ml-[420px]' : ''} ${viewMode === 'mobile' ? 'flex justify-center items-start min-h-screen bg-gray-100/50' : ''}`}>
-                    
-                    {viewMode === 'mobile' ? (
-                        /* MOBILE FRAME */
-                        (() => {
-                            // Sort blocks by grid position (row first, then column) for correct visual order
-                            const sortedMobileBlocks = [...blocks].sort((a, b) => {
-                                const aRow = a.gridRow ?? 999;
-                                const bRow = b.gridRow ?? 999;
-                                const aCol = a.gridColumn ?? 999;
-                                const bCol = b.gridColumn ?? 999;
-                                if (aRow !== bRow) return aRow - bRow;
-                                return aCol - bCol;
-                            });
-                            
-                            return (
-                                <div className="mockup-phone border-gray-800 border-[14px] rounded-[3rem] h-[800px] w-[375px] shadow-2xl bg-white overflow-hidden relative">
-                                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-800 rounded-b-xl z-20"></div>
-                                     <div className="h-full w-full overflow-y-auto no-scrollbar pb-20 bg-[#F7F7F7]">
-                                        <div className="p-6 flex flex-col items-center text-center mt-8">
-                                            <img src={profile.avatarUrl} alt="Avatar" className="w-24 h-24 rounded-full mb-4 object-cover ring-2 ring-white shadow-lg"/>
-                                            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{profile.name}</h1>
-                                            <p className="text-sm text-gray-500 mt-2">{profile.bio}</p>
-                                            {/* Social icons row in mobile */}
-                                            {profile.showSocialInHeader && profile.socialAccounts && profile.socialAccounts.length > 0 && (
-                                              <div className="flex flex-wrap justify-center gap-2 mt-4">
-                                                {profile.socialAccounts.map((account) => {
-                                                  const option = getSocialPlatformOption(account.platform);
-                                                  if (!option) return null;
-                                                  const BrandIcon = option.brandIcon;
-                                                  const FallbackIcon = option.icon;
-                                                  const url = buildSocialUrl(account.platform, account.handle);
-                                                  const showCount = profile.showFollowerCount && account.followerCount;
-                                                  return (
-                                                    <a
-                                                      key={account.platform}
-                                                      href={url}
-                                                      target="_blank"
-                                                      rel="noopener noreferrer"
-                                                      className={`${showCount ? 'px-2 py-1 rounded-full' : 'w-8 h-8 rounded-full'} bg-white shadow-sm flex items-center justify-center gap-1`}
-                                                      title={option.label}
-                                                    >
-                                                      {BrandIcon ? (
-                                                        <BrandIcon size={16} style={{ color: option.brandColor }} />
-                                                      ) : (
-                                                        <FallbackIcon size={16} className="text-gray-600" />
-                                                      )}
-                                                      {showCount && (
-                                                        <span className="text-xs font-semibold text-gray-700">{formatFollowerCount(account.followerCount)}</span>
-                                                      )}
-                                                    </a>
-                                                  );
-                                                })}
-                                              </div>
-                                            )}
-                                        </div>
-                                        <div className="p-3 grid grid-cols-9 gap-1" style={{ gridAutoRows: '28px' }}>
-                                            {sortedMobileBlocks.map(block => {
-                                                // Use exact grid positions scaled for mobile view
-                                                const col = block.gridColumn ?? 1;
-                                                const row = block.gridRow ?? 1;
-                                                return (
-                                                  <div
-                                                    key={block.id}
-                                                    className="pointer-events-none"
-                                                    style={{
-                                                      gridColumn: `${col} / span ${block.colSpan}`,
-                                                      gridRow: `${row} / span ${block.rowSpan}`,
-                                                    }}
-                                                  >
-                                                    <Block
-                                                        block={block}
-                                                        isSelected={false}
-                                                        onEdit={() => {}}
-                                                        onDelete={() => {}}
-                                                        onDragStart={() => {}}
-                                                        onDragEnter={() => {}}
-                                                        onDragEnd={() => {}}
-                                                        onDrop={() => {}}
-                                                        enableTiltEffect={true}
-                                                    />
-                                                  </div>
-                                                );
-                                            })}
-                                        </div>
-                                     </div>
-                                </div>
-                            );
-                        })()
-                    ) : (
-                        /* DESKTOP GRID - Fixed grid with explicit positioning */
-                        <>
-                            {(() => {
-                                // Auto-assign positions to blocks without explicit positions
-                                const occupiedCells = new Set<string>();
-                                const blocksWithPositions = blocks.map((block) => {
-                                    if (block.gridColumn !== undefined && block.gridRow !== undefined) {
-                                        // Mark cells as occupied
-                                        for (let c = block.gridColumn; c < block.gridColumn + Math.min(block.colSpan, GRID_COLS - block.gridColumn + 1); c++) {
-                                            for (let r = block.gridRow; r < block.gridRow + block.rowSpan; r++) {
-                                                occupiedCells.add(`${c}-${r}`);
-                                            }
-                                        }
-                                        return block;
-                                    }
-                                    return block;
-                                });
+                  // Get avatar style
+                  const avatarStyle = profile.avatarStyle || {
+                    shape: 'rounded',
+                    shadow: true,
+                    border: true,
+                    borderColor: '#ffffff',
+                    borderWidth: 4,
+                  };
+                  const avatarRadius =
+                    avatarStyle.shape === 'circle'
+                      ? '9999px'
+                      : avatarStyle.shape === 'square'
+                        ? '0'
+                        : '1.5rem';
+                  const avatarShadow =
+                    avatarStyle.shadow !== false ? '0 25px 50px -12px rgba(0,0,0,0.15)' : 'none';
+                  const avatarBorder =
+                    avatarStyle.border !== false
+                      ? `${avatarStyle.borderWidth || 4}px solid ${avatarStyle.borderColor || '#ffffff'}`
+                      : 'none';
 
-                                // For blocks without positions, find next available spot
-                                let autoRow = 1;
-                                let autoCol = 1;
-                                const finalBlocks = blocksWithPositions.map((block) => {
-                                    if (block.gridColumn === undefined || block.gridRow === undefined) {
-                                        // Find next available position
-                                        while (true) {
-                                            let canPlace = true;
-                                            const neededCols = Math.min(block.colSpan, GRID_COLS);
-                                            
-                                            // Check if block fits at current position
-                                            for (let c = autoCol; c < autoCol + neededCols && canPlace; c++) {
-                                                for (let r = autoRow; r < autoRow + block.rowSpan && canPlace; r++) {
-                                                    if (c > GRID_COLS || occupiedCells.has(`${c}-${r}`)) {
-                                                        canPlace = false;
-                                                    }
-                                                }
-                                            }
+                  // Background style
+                  const bgStyle = profile.backgroundImage
+                    ? {
+                        backgroundImage: `url('${profile.backgroundImage}')`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }
+                    : { background: profile.backgroundColor || '#f8fafc' };
 
-                                            if (canPlace) {
-                                                // Place block here
-                                                for (let c = autoCol; c < autoCol + neededCols; c++) {
-                                                    for (let r = autoRow; r < autoRow + block.rowSpan; r++) {
-                                                        occupiedCells.add(`${c}-${r}`);
-                                                    }
-                                                }
-                                                const placedBlock = { ...block, gridColumn: autoCol, gridRow: autoRow };
-                                                
-                                                // Move to next column
-                                                autoCol += neededCols;
-                                                if (autoCol > GRID_COLS) {
-                                                    autoCol = 1;
-                                                    autoRow++;
-                                                }
-                                                return placedBlock;
-                                            } else {
-                                                // Try next position
-                                                autoCol++;
-                                                if (autoCol > GRID_COLS) {
-                                                    autoCol = 1;
-                                                    autoRow++;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    return block;
-                                });
-
-                                // Calculate max row from blocks + add extra rows for new content
-                                let maxRow = 3;
-                                finalBlocks.forEach(b => {
-                                    if (b.gridRow !== undefined) {
-                                        maxRow = Math.max(maxRow, b.gridRow + b.rowSpan - 1);
-                                    }
-                                });
-                                const displayRows = maxRow + 3 + extraRows; // Add 3 extra rows + user-added rows
-
-                                // Generate empty cell placeholders
-                                const emptyCells: Array<{col: number, row: number}> = [];
-                                for (let row = 1; row <= displayRows; row++) {
-                                    for (let col = 1; col <= GRID_COLS; col++) {
-                                        if (!occupiedCells.has(`${col}-${row}`)) {
-                                            emptyCells.push({ col, row });
-                                        }
-                                    }
-                                }
-
-                                const handleDropOnCell = (col: number, row: number) => {
-                                    if (!draggedBlockId) return;
-                                    const blockIndex = blocks.findIndex(b => b.id === draggedBlockId);
-                                    if (blockIndex === -1) return;
-
-                                    const sourceBlock = blocks[blockIndex];
-
-                                    // Simple positioning: place block's top-left at the drop cell
-                                    // Clamp to grid bounds (columns only, rows unlimited)
-                                    const clampedCol = Math.max(1, Math.min(col, GRID_COLS - sourceBlock.colSpan + 1));
-                                    const clampedRow = Math.max(1, row);
-
-                                    // Move source block to new position
-                                    // Move to end of array so it appears on top
-                                    const movedBlock = { ...sourceBlock, gridColumn: clampedCol, gridRow: clampedRow };
-                                    const newBlocks = [...blocks.filter(b => b.id !== sourceBlock.id), movedBlock];
-
-                                    handleSetBlocks(newBlocks);
-                                    handleDragEnd();
-                                };
-
-                                const handleClickEmptyCell = (col: number, row: number) => {
-                                    if (draggedBlockId) return;
-                                    setEditingBlockId(null);
-                                    setIsSidebarOpen(true);
-                                    sessionStorage.setItem('pendingBlockPosition', JSON.stringify({ col, row }));
-                                };
-
-                                return (
-                                    <motion.main
-                                        ref={gridRef as any}
-                                        layout
-                                        className="grid gap-2"
-                                        style={{
-                                            gridTemplateColumns: 'repeat(9, 1fr)',
-                                            gridAutoRows: '64px', // Auto rows for scrollable content
-                                        }}
+                  return (
+                    <div className="mockup-phone border-gray-800 border-[14px] rounded-[3rem] h-[800px] w-[375px] shadow-2xl bg-white overflow-hidden relative">
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-800 rounded-b-xl z-20"></div>
+                      <div
+                        className="h-full w-full overflow-y-auto no-scrollbar relative"
+                        style={bgStyle}
+                      >
+                        {/* Background blur overlay */}
+                        {profile.backgroundImage &&
+                          profile.backgroundBlur &&
+                          profile.backgroundBlur > 0 && (
+                            <div
+                              className="absolute inset-0 pointer-events-none"
+                              style={{
+                                backdropFilter: `blur(${profile.backgroundBlur}px)`,
+                                WebkitBackdropFilter: `blur(${profile.backgroundBlur}px)`,
+                              }}
+                            />
+                          )}
+                        {/* Profile Section - Matches export's .profile-section mobile styles */}
+                        <div className="p-4 pt-8 flex flex-col items-center text-center relative z-10">
+                          <div
+                            className="w-24 h-24 mb-4 overflow-hidden bg-gray-100 transition-all duration-300"
+                            style={{
+                              borderRadius: avatarRadius,
+                              boxShadow: avatarShadow,
+                              border: avatarBorder,
+                            }}
+                          >
+                            <img
+                              src={profile.avatarUrl}
+                              alt="Avatar"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 leading-none mb-2">
+                            {profile.name}
+                          </h1>
+                          <p className="text-sm text-gray-500 font-medium whitespace-pre-wrap max-w-xs leading-relaxed">
+                            {profile.bio}
+                          </p>
+                          {/* Social icons row - Matches export's .profile-socials */}
+                          {profile.showSocialInHeader &&
+                            profile.socialAccounts &&
+                            profile.socialAccounts.length > 0 && (
+                              <div className="flex flex-wrap justify-center gap-3 mt-4">
+                                {profile.socialAccounts.map((account) => {
+                                  const option = getSocialPlatformOption(account.platform);
+                                  if (!option) return null;
+                                  const BrandIcon = option.brandIcon;
+                                  const FallbackIcon = option.icon;
+                                  const url = buildSocialUrl(account.platform, account.handle);
+                                  const showCount =
+                                    profile.showFollowerCount && account.followerCount;
+                                  return (
+                                    <a
+                                      key={account.platform}
+                                      href={url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`${showCount ? 'px-3 py-2' : 'w-10 h-10'} bg-white rounded-full shadow-md flex items-center justify-center gap-2 font-semibold text-gray-900 transition-transform hover:-translate-y-0.5`}
+                                      title={option.label}
                                     >
-                                        {/* Render blocks with positions - later blocks have higher z-index for overlapping */}
-                                        <AnimatePresence>
-                                        {finalBlocks.map((block, index) => (
-                                            <Block
-                                                key={block.id}
-                                                block={{ ...block, zIndex: index + 1 }}
-                                                isSelected={editingBlockId === block.id}
-                                                isDragTarget={dragOverBlockId === block.id}
-                                                isDragging={draggedBlockId === block.id}
-                                                enableResize={viewMode === 'desktop'}
-                                                isResizing={resizingBlockId === block.id}
-                                                onResizeStart={handleResizeStart}
-                                                onEdit={(b) => { setEditingBlockId(b.id); setIsSidebarOpen(true); }}
-                                                onDelete={deleteBlock}
-                                                onDragStart={handleDragStart}
-                                                onDragEnter={handleDragEnter}
-                                                onDragEnd={handleDragEnd}
-                                                onDrop={handleDrop}
-                                                onInlineUpdate={updateBlock}
-                                            />
-                                        ))}
-                                        </AnimatePresence>
+                                      {BrandIcon ? (
+                                        <span style={{ color: option.brandColor }}>
+                                          <BrandIcon size={20} />
+                                        </span>
+                                      ) : (
+                                        <span className="text-gray-600">
+                                          <FallbackIcon size={20} />
+                                        </span>
+                                      )}
+                                      {showCount && (
+                                        <span className="text-sm font-semibold text-gray-900">
+                                          {formatFollowerCount(account.followerCount)}
+                                        </span>
+                                      )}
+                                    </a>
+                                  );
+                                })}
+                              </div>
+                            )}
+                        </div>
+                        {/* Grid Section - Matches export's mobile layout: single column, stacked blocks */}
+                        <div className="p-4 relative z-10">
+                          <div
+                            className="grid gap-5 pb-8"
+                            style={{
+                              gridTemplateColumns: '1fr',
+                              gridAutoRows: '64px',
+                              gridAutoFlow: 'dense',
+                            }}
+                          >
+                            {sortedMobileBlocks.map((block) => {
+                              // In mobile export, blocks stack vertically in a single column
+                              // grid-column: auto, grid-row: auto (CSS resets positioning)
+                              // Row span is preserved
+                              return (
+                                <div
+                                  key={block.id}
+                                  className="pointer-events-none"
+                                  style={{
+                                    gridColumn: 'auto',
+                                    gridRow: 'auto',
+                                  }}
+                                >
+                                  <Block
+                                    block={block}
+                                    isSelected={false}
+                                    onEdit={() => {}}
+                                    onDelete={() => {}}
+                                    onDragStart={() => {}}
+                                    onDragEnter={() => {}}
+                                    onDragEnd={() => {}}
+                                    onDrop={() => {}}
+                                    enableTiltEffect={true}
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        {/* Footer - Matches export */}
+                        {profile.showBranding !== false && (
+                          <div className="w-full py-6 text-center text-sm text-gray-500 font-medium">
+                            <p className="inline-flex items-center gap-1">
+                              Made with <span className="text-red-400">♥</span> using{' '}
+                              <span className="font-semibold">OpenBento</span>
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : (
+                /* DESKTOP GRID - Fixed grid with explicit positioning */
+                <>
+                  {(() => {
+                    // Auto-assign positions to blocks without explicit positions
+                    const occupiedCells = new Set<string>();
+                    const blocksWithPositions = blocks.map((block) => {
+                      if (block.gridColumn !== undefined && block.gridRow !== undefined) {
+                        // Mark cells as occupied
+                        for (
+                          let c = block.gridColumn;
+                          c <
+                          block.gridColumn +
+                            Math.min(block.colSpan, GRID_COLS - block.gridColumn + 1);
+                          c++
+                        ) {
+                          for (let r = block.gridRow; r < block.gridRow + block.rowSpan; r++) {
+                            occupiedCells.add(`${c}-${r}`);
+                          }
+                        }
+                        return block;
+                      }
+                      return block;
+                    });
 
-                                        {/* Empty cell drop zones */}
-                                        {emptyCells.map(({ col, row }) => (
-                                            <motion.div
-                                                key={`empty-${col}-${row}`}
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                style={{
-                                                    gridColumnStart: col,
-                                                    gridRowStart: row,
-                                                }}
-                                                onDragEnter={() => setDragOverSlotIndex(col * 100 + row)}
-                                                onDragOver={(e) => e.preventDefault()}
-                                                onDrop={(e) => { e.preventDefault(); handleDropOnCell(col, row); }}
-                                                onClick={() => handleClickEmptyCell(col, row)}
-                                                className={`border border-dashed rounded-md flex items-center justify-center transition-all duration-200 group cursor-pointer ${
-                                                    draggedBlockId
-                                                        ? dragOverSlotIndex === col * 100 + row
-                                                            ? 'border-violet-500 bg-violet-100 scale-[1.02]'
-                                                            : 'border-gray-300 bg-gray-50/50 hover:border-violet-400 hover:bg-violet-50'
-                                                        : 'border-gray-200 bg-gray-50/30 hover:border-gray-300 hover:bg-gray-100/50'
-                                                }`}
-                                            >
-                                                {draggedBlockId ? (
-                                                    <Plus size={14} className={dragOverSlotIndex === col * 100 + row ? 'text-violet-500' : 'text-gray-400'} />
-                                                ) : (
-                                                    <Plus size={12} className="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                )}
-                                            </motion.div>
-                                        ))}
+                    // For blocks without positions, find next available spot
+                    let autoRow = 1;
+                    let autoCol = 1;
+                    const finalBlocks = blocksWithPositions.map((block) => {
+                      if (block.gridColumn === undefined || block.gridRow === undefined) {
+                        // Find next available position
+                        while (true) {
+                          let canPlace = true;
+                          const neededCols = Math.min(block.colSpan, GRID_COLS);
 
-                                        {/* Add more rows button - spans full width at bottom */}
-                                        <motion.button
-                                            type="button"
-                                            onClick={() => setExtraRows(prev => prev + 3)}
-                                            style={{
-                                                gridColumn: '1 / -1',
-                                                gridRow: displayRows + 1,
-                                            }}
-                                            className="h-12 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center gap-2 text-gray-400 hover:border-violet-400 hover:text-violet-500 hover:bg-violet-50/50 transition-all group"
-                                            whileHover={{ scale: 1.01 }}
-                                            whileTap={{ scale: 0.99 }}
-                                        >
-                                            <Plus size={18} className="group-hover:rotate-90 transition-transform" />
-                                            <span className="text-sm font-medium">Add more rows</span>
-                                        </motion.button>
-                                    </motion.main>
-                                );
-                            })()}
-                        </>
-                    )}
-                </div>
+                          // Check if block fits at current position
+                          for (let c = autoCol; c < autoCol + neededCols && canPlace; c++) {
+                            for (let r = autoRow; r < autoRow + block.rowSpan && canPlace; r++) {
+                              if (c > GRID_COLS || occupiedCells.has(`${c}-${r}`)) {
+                                canPlace = false;
+                              }
+                            }
+                          }
 
+                          if (canPlace) {
+                            // Place block here
+                            for (let c = autoCol; c < autoCol + neededCols; c++) {
+                              for (let r = autoRow; r < autoRow + block.rowSpan; r++) {
+                                occupiedCells.add(`${c}-${r}`);
+                              }
+                            }
+                            const placedBlock = { ...block, gridColumn: autoCol, gridRow: autoRow };
+
+                            // Move to next column
+                            autoCol += neededCols;
+                            if (autoCol > GRID_COLS) {
+                              autoCol = 1;
+                              autoRow++;
+                            }
+                            return placedBlock;
+                          } else {
+                            // Try next position
+                            autoCol++;
+                            if (autoCol > GRID_COLS) {
+                              autoCol = 1;
+                              autoRow++;
+                            }
+                          }
+                        }
+                      }
+                      return block;
+                    });
+
+                    // Calculate max row from blocks + add extra rows for new content
+                    let maxRow = 3;
+                    finalBlocks.forEach((b) => {
+                      if (b.gridRow !== undefined) {
+                        maxRow = Math.max(maxRow, b.gridRow + b.rowSpan - 1);
+                      }
+                    });
+                    const displayRows = maxRow + 3 + extraRows; // Add 3 extra rows + user-added rows
+
+                    // Generate empty cell placeholders
+                    const emptyCells: Array<{ col: number; row: number }> = [];
+                    for (let row = 1; row <= displayRows; row++) {
+                      for (let col = 1; col <= GRID_COLS; col++) {
+                        if (!occupiedCells.has(`${col}-${row}`)) {
+                          emptyCells.push({ col, row });
+                        }
+                      }
+                    }
+
+                    const handleDropOnCell = (col: number, row: number) => {
+                      if (!draggedBlockId) return;
+                      const blockIndex = blocks.findIndex((b) => b.id === draggedBlockId);
+                      if (blockIndex === -1) return;
+
+                      const sourceBlock = blocks[blockIndex];
+
+                      // Simple positioning: place block's top-left at the drop cell
+                      // Clamp to grid bounds (columns only, rows unlimited)
+                      const clampedCol = Math.max(
+                        1,
+                        Math.min(col, GRID_COLS - sourceBlock.colSpan + 1)
+                      );
+                      const clampedRow = Math.max(1, row);
+
+                      // Move source block to new position
+                      // Move to end of array so it appears on top
+                      const movedBlock = {
+                        ...sourceBlock,
+                        gridColumn: clampedCol,
+                        gridRow: clampedRow,
+                      };
+                      const newBlocks = [
+                        ...blocks.filter((b) => b.id !== sourceBlock.id),
+                        movedBlock,
+                      ];
+
+                      handleSetBlocks(newBlocks);
+                      handleDragEnd();
+                    };
+
+                    const handleClickEmptyCell = (col: number, row: number) => {
+                      if (draggedBlockId) return;
+                      setEditingBlockId(null);
+                      setIsSidebarOpen(true);
+                      sessionStorage.setItem('pendingBlockPosition', JSON.stringify({ col, row }));
+                    };
+
+                    return (
+                      <motion.main
+                        ref={gridRef as any}
+                        layout
+                        className="grid gap-2"
+                        style={{
+                          gridTemplateColumns: 'repeat(9, 1fr)',
+                          gridAutoRows: '64px', // Auto rows for scrollable content
+                        }}
+                      >
+                        {/* Render blocks with positions - later blocks have higher z-index for overlapping */}
+                        <AnimatePresence>
+                          {finalBlocks.map((block, index) => (
+                            <Block
+                              key={block.id}
+                              block={{ ...block, zIndex: index + 1 }}
+                              isSelected={editingBlockId === block.id}
+                              isDragTarget={dragOverBlockId === block.id}
+                              isDragging={draggedBlockId === block.id}
+                              enableResize={viewMode === 'desktop'}
+                              isResizing={resizingBlockId === block.id}
+                              onResizeStart={handleResizeStart}
+                              onEdit={(b) => {
+                                setEditingBlockId(b.id);
+                                setIsSidebarOpen(true);
+                              }}
+                              onDelete={deleteBlock}
+                              onDragStart={handleDragStart}
+                              onDragEnter={handleDragEnter}
+                              onDragEnd={handleDragEnd}
+                              onDrop={handleDrop}
+                              onInlineUpdate={updateBlock}
+                            />
+                          ))}
+                        </AnimatePresence>
+
+                        {/* Empty cell drop zones */}
+                        {emptyCells.map(({ col, row }) => (
+                          <motion.div
+                            key={`empty-${col}-${row}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            style={{
+                              gridColumnStart: col,
+                              gridRowStart: row,
+                            }}
+                            onDragEnter={() => setDragOverSlotIndex(col * 100 + row)}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              handleDropOnCell(col, row);
+                            }}
+                            onClick={() => handleClickEmptyCell(col, row)}
+                            className={`border border-dashed rounded-md flex items-center justify-center transition-all duration-200 group cursor-pointer ${
+                              draggedBlockId
+                                ? dragOverSlotIndex === col * 100 + row
+                                  ? 'border-violet-500 bg-violet-100 scale-[1.02]'
+                                  : 'border-gray-300 bg-gray-50/50 hover:border-violet-400 hover:bg-violet-50'
+                                : 'border-gray-200 bg-gray-50/30 hover:border-gray-300 hover:bg-gray-100/50'
+                            }`}
+                          >
+                            {draggedBlockId ? (
+                              <Plus
+                                size={14}
+                                className={
+                                  dragOverSlotIndex === col * 100 + row
+                                    ? 'text-violet-500'
+                                    : 'text-gray-400'
+                                }
+                              />
+                            ) : (
+                              <Plus
+                                size={12}
+                                className="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                              />
+                            )}
+                          </motion.div>
+                        ))}
+
+                        {/* Add more rows button - spans full width at bottom */}
+                        <motion.button
+                          type="button"
+                          onClick={() => setExtraRows((prev) => prev + 3)}
+                          style={{
+                            gridColumn: '1 / -1',
+                            gridRow: displayRows + 1,
+                          }}
+                          className="h-12 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center gap-2 text-gray-400 hover:border-violet-400 hover:text-violet-500 hover:bg-violet-50/50 transition-all group"
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                        >
+                          <Plus size={18} className="group-hover:rotate-90 transition-transform" />
+                          <span className="text-sm font-medium">Add more rows</span>
+                        </motion.button>
+                      </motion.main>
+                    );
+                  })()}
+                </>
+              )}
             </div>
+          </div>
         </div>
-        
+
         {/* Footer - Centered on full width */}
         {viewMode === 'desktop' && profile.showBranding !== false && (
           <footer className="w-full py-10 text-center">
             <p className="text-sm text-gray-400 font-medium">
               Made with <span className="text-red-400">♥</span> using{' '}
-              <a 
-                href="https://github.com/yoanbernabeu/openbento" 
-                target="_blank" 
+              <a
+                href="https://github.com/yoanbernabeu/openbento"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 font-semibold hover:text-violet-500 transition-colors"
               >
@@ -1728,13 +2010,13 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
 
       {/* 2. SIDEBAR EDITOR */}
       <EditorSidebar
-         isOpen={isSidebarOpen}
-         profile={profile}
-         addBlock={addBlock}
-         editingBlock={editingBlock}
-         updateBlock={updateBlock}
-         onDelete={deleteBlock}
-         closeEdit={closeSidebar}
+        isOpen={isSidebarOpen}
+        profile={profile}
+        addBlock={addBlock}
+        editingBlock={editingBlock}
+        updateBlock={updateBlock}
+        onDelete={deleteBlock}
+        closeEdit={closeSidebar}
       />
 
       {/* 3. SETTINGS MODAL */}
@@ -1764,7 +2046,7 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
           setPendingAvatarSrc(null);
         }}
         onConfirm={(dataUrl) => {
-          handleSetProfile(prev => ({ ...prev, avatarUrl: dataUrl }));
+          handleSetProfile((prev) => ({ ...prev, avatarUrl: dataUrl }));
           setShowAvatarCropModal(false);
           setPendingAvatarSrc(null);
         }}
@@ -1775,459 +2057,517 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
         isOpen={showAvatarStyleModal}
         onClose={() => setShowAvatarStyleModal(false)}
         avatarUrl={profile.avatarUrl}
-        style={profile.avatarStyle || { shape: 'rounded', shadow: true, border: true, borderColor: '#ffffff', borderWidth: 4 }}
+        style={
+          profile.avatarStyle || {
+            shape: 'rounded',
+            shadow: true,
+            border: true,
+            borderColor: '#ffffff',
+            borderWidth: 4,
+          }
+        }
         onStyleChange={handleAvatarStyleChange}
       />
 
       {/* 6. DEPLOY MODAL */}
       <AnimatePresence>
-      {showDeployModal && (
-          <motion.div 
+        {showDeployModal && (
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           >
-	             <motion.div 
-	                initial={{ scale: 0.9, opacity: 0, y: 20 }}
-	                animate={{ scale: 1, opacity: 1, y: 0 }}
-	                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-	                className="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden ring-1 ring-gray-900/5"
-	             >
-	                <div className="p-6 pb-4 flex justify-between items-start">
-	                   <div>
-	                       <div className="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center text-green-700 mb-3">
-	                           <Share2 size={18}/>
-	                       </div>
-	                       <h2 className="text-xl font-bold text-gray-900">Deploy</h2>
-	                       <p className="text-gray-500 mt-1 text-sm">
-	                         Download the package, then follow <code>DEPLOY.md</code> inside.
-	                       </p>
-	                   </div>
-	                   <button onClick={() => setShowDeployModal(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"><X size={20}/></button>
-	                </div>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden ring-1 ring-gray-900/5"
+            >
+              <div className="p-6 pb-4 flex justify-between items-start">
+                <div>
+                  <div className="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center text-green-700 mb-3">
+                    <Share2 size={18} />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900">Deploy</h2>
+                  <p className="text-gray-500 mt-1 text-sm">
+                    Download the package, then follow <code>DEPLOY.md</code> inside.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowDeployModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-	                <div className="px-6 space-y-4 pb-2">
-	                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-	                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-2">
-	                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-	                        Deployment target
-	                      </label>
-	                      <select
-	                        value={deployTarget}
-	                        onChange={(e) => {
-	                          setDeployTarget(e.target.value as ExportDeploymentTarget);
-	                          setHasDownloadedExport(false);
-	                          setExportError(null);
-	                        }}
-	                        className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-semibold text-gray-800"
-	                      >
-	                        <option value="vercel">Vercel</option>
-	                        <option value="netlify">Netlify</option>
-	                        <option value="docker">Docker (nginx)</option>
-	                        <option value="vps">VPS (nginx)</option>
-	                        <option value="heroku">Heroku</option>
-	                        <option value="github-pages">GitHub Pages</option>
-	                      </select>
-	                    </div>
+              <div className="px-6 space-y-4 pb-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      Deployment target
+                    </label>
+                    <select
+                      value={deployTarget}
+                      onChange={(e) => {
+                        setDeployTarget(e.target.value as ExportDeploymentTarget);
+                        setHasDownloadedExport(false);
+                        setExportError(null);
+                      }}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-semibold text-gray-800"
+                    >
+                      <option value="vercel">Vercel</option>
+                      <option value="netlify">Netlify</option>
+                      <option value="docker">Docker (nginx)</option>
+                      <option value="vps">VPS (nginx)</option>
+                      <option value="heroku">Heroku</option>
+                      <option value="github-pages">GitHub Pages</option>
+                    </select>
+                  </div>
 
-	                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex gap-3 items-center">
-	                      <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 text-gray-700">
-	                        {isExporting ? (
-	                          <RefreshCw size={20} className="animate-spin" />
-	                        ) : hasDownloadedExport ? (
-	                          <Check size={20} className="text-green-600" />
-	                        ) : (
-	                          <Download size={20} />
-	                        )}
-	                      </div>
-	                      <div className="min-w-0">
-	                        <p className="font-semibold text-gray-900 text-sm leading-tight">
-	                          {isExporting ? 'Packaging…' : hasDownloadedExport ? 'Package downloaded' : 'Download package'}
-	                        </p>
-	                        <p className="text-gray-500 text-xs break-all">
-	                          <code>{`${profile.name.replace(/\s+/g, '-').toLowerCase()}-bento-${deployTarget}.zip`}</code>
-	                        </p>
-	                      </div>
-	                    </div>
-	                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex gap-3 items-center">
+                    <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 text-gray-700">
+                      {isExporting ? (
+                        <RefreshCw size={20} className="animate-spin" />
+                      ) : hasDownloadedExport ? (
+                        <Check size={20} className="text-green-600" />
+                      ) : (
+                        <Download size={20} />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 text-sm leading-tight">
+                        {isExporting
+                          ? 'Packaging…'
+                          : hasDownloadedExport
+                            ? 'Package downloaded'
+                            : 'Download package'}
+                      </p>
+                      <p className="text-gray-500 text-xs break-all">
+                        <code>{`${profile.name.replace(/\s+/g, '-').toLowerCase()}-bento-${deployTarget}.zip`}</code>
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-	                  {exportError && (
-	                    <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-sm text-red-700 font-semibold">
-	                      {exportError}
-	                    </div>
-	                  )}
-	                </div>
+                {exportError && (
+                  <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-sm text-red-700 font-semibold">
+                    {exportError}
+                  </div>
+                )}
+              </div>
 
-	                <div className="p-6 pt-4 border-t border-gray-100">
-	                  <div className="flex flex-col sm:flex-row gap-3">
-	                    <button
-	                      onClick={downloadExport}
-	                      disabled={isExporting}
-	                      className="w-full sm:flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-	                    >
-	                      {isExporting ? <RefreshCw size={16} className="animate-spin" /> : <Download size={16} />}
-	                      {hasDownloadedExport ? 'Download again' : 'Download package'}
-	                    </button>
-	                    <button
-	                      onClick={() => setShowDeployModal(false)}
-	                      className="w-full sm:flex-1 py-3 bg-white text-gray-900 rounded-xl font-bold border border-gray-200 hover:bg-gray-50 transition-colors"
-	                    >
-	                      Close
-	                    </button>
-	                  </div>
-	                </div>
-	             </motion.div>
-	          </motion.div>
-	      )}
+              <div className="p-6 pt-4 border-t border-gray-100">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={downloadExport}
+                    disabled={isExporting}
+                    className="w-full sm:flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isExporting ? (
+                      <RefreshCw size={16} className="animate-spin" />
+                    ) : (
+                      <Download size={16} />
+                    )}
+                    {hasDownloadedExport ? 'Download again' : 'Download package'}
+                  </button>
+                  <button
+                    onClick={() => setShowDeployModal(false)}
+                    className="w-full sm:flex-1 py-3 bg-white text-gray-900 rounded-xl font-bold border border-gray-200 hover:bg-gray-50 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* 5. ANALYTICS MODAL */}
       <AnimatePresence>
-      {showAnalyticsModal && (
-          <motion.div 
+        {showAnalyticsModal && (
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           >
-             <motion.div 
-                initial={{ scale: 0.95, opacity: 0, y: 16 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.95, opacity: 0, y: 16 }}
-                className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden ring-1 ring-gray-900/5"
-             >
-                <div className="p-6 pb-4 flex justify-between items-start border-b border-gray-100">
-                   <div>
-                       <div className="w-9 h-9 bg-violet-100 rounded-full flex items-center justify-center text-violet-700 mb-3">
-                           <BarChart3 size={18}/>
-                       </div>
-                       <h2 className="text-xl font-bold text-gray-900">Analytics</h2>
-                       <p className="text-gray-500 mt-1 text-sm">
-                         Site ID: <span className="font-mono text-xs">{activeBento?.id || '—'}</span>
-                       </p>
-                   </div>
-                   <button onClick={() => setShowAnalyticsModal(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"><X size={20}/></button>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden ring-1 ring-gray-900/5"
+            >
+              <div className="p-6 pb-4 flex justify-between items-start border-b border-gray-100">
+                <div>
+                  <div className="w-9 h-9 bg-violet-100 rounded-full flex items-center justify-center text-violet-700 mb-3">
+                    <BarChart3 size={18} />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900">Analytics</h2>
+                  <p className="text-gray-500 mt-1 text-sm">
+                    Site ID: <span className="font-mono text-xs">{activeBento?.id || '—'}</span>
+                  </p>
                 </div>
+                <button
+                  onClick={() => setShowAnalyticsModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-                <div className="p-6 pt-4 space-y-5 max-h-[70vh] overflow-y-auto">
-                  <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Supabase</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          URL is used for tracking + dashboard. Analytics is enabled on export when the URL is set.
-                        </p>
-                      </div>
+              <div className="p-6 pt-4 space-y-5 max-h-[70vh] overflow-y-auto">
+                <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Supabase
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        URL is used for tracking + dashboard. Analytics is enabled on export when
+                        the URL is set.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSetProfile((prev) => ({
+                          ...prev,
+                          analytics: {
+                            ...(prev.analytics ?? {}),
+                            enabled: !(prev.analytics?.enabled ?? false),
+                          },
+                        }))
+                      }
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                        profile.analytics?.enabled ? 'bg-gray-900' : 'bg-gray-200'
+                      }`}
+                      aria-pressed={!!profile.analytics?.enabled}
+                      aria-label="Toggle analytics"
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                          profile.analytics?.enabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="text"
+                      value={profile.analytics?.supabaseUrl || ''}
+                      onChange={(e) =>
+                        handleSetProfile((prev) => ({
+                          ...prev,
+                          analytics: {
+                            ...(prev.analytics ?? {}),
+                            supabaseUrl: e.target.value,
+                          },
+                        }))
+                      }
+                      className="flex-1 bg-white border border-gray-200 rounded-xl p-2.5 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-medium text-gray-700"
+                      placeholder="https://xxxx.supabase.co"
+                    />
+                    {import.meta.env.DEV && (
                       <button
                         type="button"
-                        onClick={() =>
-                          handleSetProfile((prev) => ({
-                            ...prev,
-                            analytics: {
-                              ...(prev.analytics ?? {}),
-                              enabled: !(prev.analytics?.enabled ?? false),
-                            },
-                          }))
-                        }
-                        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                          profile.analytics?.enabled ? 'bg-gray-900' : 'bg-gray-200'
-                        }`}
-                        aria-pressed={!!profile.analytics?.enabled}
-                        aria-label="Toggle analytics"
+                        onClick={() => setSupabaseSetupOpen((v) => !v)}
+                        className="px-3 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors"
                       >
-                        <span
-                          className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                            profile.analytics?.enabled ? 'translate-x-6' : 'translate-x-1'
-                          }`}
-                        />
+                        {supabaseSetupOpen ? 'Hide setup' : 'Setup (Dev)'}
                       </button>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <input
-                        type="text"
-                        value={profile.analytics?.supabaseUrl || ''}
-                        onChange={(e) =>
-                          handleSetProfile((prev) => ({
-                            ...prev,
-                            analytics: {
-                              ...(prev.analytics ?? {}),
-                              supabaseUrl: e.target.value,
-                            },
-                          }))
-                        }
-                        className="flex-1 bg-white border border-gray-200 rounded-xl p-2.5 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-medium text-gray-700"
-                        placeholder="https://xxxx.supabase.co"
-                      />
-                      {import.meta.env.DEV && (
-                        <button
-                          type="button"
-                          onClick={() => setSupabaseSetupOpen((v) => !v)}
-                          className="px-3 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          {supabaseSetupOpen ? 'Hide setup' : 'Setup (Dev)'}
-                        </button>
-                      )}
-                    </div>
-
-                    {import.meta.env.DEV && supabaseSetupOpen && (
-                      <div className="pt-2 space-y-3">
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setSupabaseSetupMode('existing')}
-                            className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${
-                              supabaseSetupMode === 'existing'
-                                ? 'bg-gray-900 text-white border-gray-900'
-                                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
-                            }`}
-                          >
-                            Existing project
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setSupabaseSetupMode('create')}
-                            className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${
-                              supabaseSetupMode === 'create'
-                                ? 'bg-gray-900 text-white border-gray-900'
-                                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
-                            }`}
-                          >
-                            Create project
-                          </button>
-                        </div>
-
-                        {supabaseSetupMode === 'existing' ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                Project ref
-                              </label>
-                              <input
-                                value={supabaseSetupProjectRef}
-                                onChange={(e) => setSupabaseSetupProjectRef(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all"
-                                placeholder="xxxx"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                DB password
-                              </label>
-                              <input
-                                type="password"
-                                value={supabaseSetupDbPassword}
-                                onChange={(e) => setSupabaseSetupDbPassword(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all"
-                                placeholder="••••••••••••"
-                              />
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div className="sm:col-span-2">
-                              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                Project name (optional)
-                              </label>
-                              <input
-                                value={supabaseSetupProjectName}
-                                onChange={(e) => setSupabaseSetupProjectName(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all"
-                                placeholder={`openbento-analytics-${new Date().getFullYear()}`}
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                Region
-                              </label>
-                              <input
-                                value={supabaseSetupRegion}
-                                onChange={(e) => setSupabaseSetupRegion(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all"
-                                placeholder="eu-west-1"
-                              />
-                            </div>
-                            <div className="sm:col-span-3">
-                              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                DB password (optional)
-                              </label>
-                              <input
-                                type="password"
-                                value={supabaseSetupDbPassword}
-                                onChange={(e) => setSupabaseSetupDbPassword(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all"
-                                placeholder="Leave empty to auto-generate"
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={runSupabaseSetup}
-                            disabled={supabaseSetupRunning}
-                            className="px-3 py-2 rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-black disabled:opacity-60 disabled:cursor-not-allowed"
-                          >
-                            {supabaseSetupRunning ? 'Running…' : 'Setup & verify'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={checkSupabaseStatus}
-                            disabled={supabaseSetupRunning}
-                            className="px-3 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
-                          >
-                            Check status
-                          </button>
-                          <span className="text-[11px] text-gray-400">
-                            Uses Supabase CLI locally (requires <code>supabase login</code>).
-                          </span>
-                        </div>
-
-                        {supabaseSetupError && (
-                          <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-xs text-red-700 font-semibold">
-                            {supabaseSetupError}
-                          </div>
-                        )}
-
-                        {supabaseSetupResult?.generatedDbPassword && (
-                          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900">
-                            <p className="font-bold">Generated DB password (save it):</p>
-                            <p className="font-mono break-all mt-1">{supabaseSetupResult.generatedDbPassword}</p>
-                          </div>
-                        )}
-
-                        {supabaseSetupResult?.checks && (
-                          <div className="bg-white border border-gray-200 rounded-xl p-3">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Status</p>
-                            <div className="space-y-1.5 text-xs">
-                              {Object.entries(supabaseSetupResult.checks as Record<string, any>).map(([key, value]) => (
-                                <div key={key} className="flex items-center justify-between gap-3">
-                                  <span className="font-mono text-gray-600">{key}</span>
-                                  <span className={`font-bold ${(value as any)?.ok ? 'text-green-700' : 'text-red-700'}`}>
-                                    {(value as any)?.ok ? 'OK' : 'FAIL'}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div className="md:col-span-2 bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Admin Token</label>
+                  {import.meta.env.DEV && supabaseSetupOpen && (
+                    <div className="pt-2 space-y-3">
+                      <div className="flex flex-wrap gap-2">
                         <button
-                          onClick={fetchAnalytics}
-                          disabled={isLoadingAnalytics}
-                          className="px-3 py-2 rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          type="button"
+                          onClick={() => setSupabaseSetupMode('existing')}
+                          className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${
+                            supabaseSetupMode === 'existing'
+                              ? 'bg-gray-900 text-white border-gray-900'
+                              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                          }`}
                         >
-                          <RefreshCw size={14} className={isLoadingAnalytics ? 'animate-spin' : ''} />
-                          Refresh
+                          Existing project
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSupabaseSetupMode('create')}
+                          className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${
+                            supabaseSetupMode === 'create'
+                              ? 'bg-gray-900 text-white border-gray-900'
+                              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          Create project
                         </button>
                       </div>
-                      <input
-                        type="password"
-                        value={analyticsAdminToken}
-                        onChange={(e) => setAnalyticsAdminToken(e.target.value)}
-                        placeholder="OPENBENTO_ANALYTICS_ADMIN_TOKEN"
-                        className="w-full bg-white border border-gray-200 rounded-xl p-2.5 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-medium text-gray-700"
-                      />
-                      <div className="flex items-center gap-3">
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Range</label>
-                        <select
-                          value={analyticsDays}
-                          onChange={(e) => setAnalyticsDays(Number(e.target.value))}
-                          className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700"
-                        >
-                          <option value={7}>Last 7 days</option>
-                          <option value={30}>Last 30 days</option>
-                          <option value={90}>Last 90 days</option>
-                        </select>
-                        {analyticsData?.sampled && (
-                          <span className="ml-auto inline-flex items-center gap-2 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
-                            <AlertTriangle size={14} />
-                            Sampled
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-gray-400">
-                        This dashboard reads from the <code>openbento-analytics-admin</code> Edge Function using your admin token.
-                      </p>
-                    </div>
 
-                    <div className="bg-white border border-gray-100 rounded-xl p-3">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Totals</p>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-gray-700">Page views</span>
-                          <span className="text-sm font-bold text-gray-900">{analyticsData?.totals?.pageViews ?? '—'}</span>
+                      {supabaseSetupMode === 'existing' ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                              Project ref
+                            </label>
+                            <input
+                              value={supabaseSetupProjectRef}
+                              onChange={(e) => setSupabaseSetupProjectRef(e.target.value)}
+                              className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all"
+                              placeholder="xxxx"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                              DB password
+                            </label>
+                            <input
+                              type="password"
+                              value={supabaseSetupDbPassword}
+                              onChange={(e) => setSupabaseSetupDbPassword(e.target.value)}
+                              className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all"
+                              placeholder="••••••••••••"
+                            />
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-gray-700">Clicks</span>
-                          <span className="text-sm font-bold text-gray-900">{analyticsData?.totals?.clicks ?? '—'}</span>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div className="sm:col-span-2">
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                              Project name (optional)
+                            </label>
+                            <input
+                              value={supabaseSetupProjectName}
+                              onChange={(e) => setSupabaseSetupProjectName(e.target.value)}
+                              className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all"
+                              placeholder={`openbento-analytics-${new Date().getFullYear()}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                              Region
+                            </label>
+                            <input
+                              value={supabaseSetupRegion}
+                              onChange={(e) => setSupabaseSetupRegion(e.target.value)}
+                              className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all"
+                              placeholder="eu-west-1"
+                            />
+                          </div>
+                          <div className="sm:col-span-3">
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                              DB password (optional)
+                            </label>
+                            <input
+                              type="password"
+                              value={supabaseSetupDbPassword}
+                              onChange={(e) => setSupabaseSetupDbPassword(e.target.value)}
+                              className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all"
+                              placeholder="Leave empty to auto-generate"
+                            />
+                          </div>
                         </div>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={runSupabaseSetup}
+                          disabled={supabaseSetupRunning}
+                          className="px-3 py-2 rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-black disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          {supabaseSetupRunning ? 'Running…' : 'Setup & verify'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={checkSupabaseStatus}
+                          disabled={supabaseSetupRunning}
+                          className="px-3 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          Check status
+                        </button>
+                        <span className="text-[11px] text-gray-400">
+                          Uses Supabase CLI locally (requires <code>supabase login</code>).
+                        </span>
+                      </div>
+
+                      {supabaseSetupError && (
+                        <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-xs text-red-700 font-semibold">
+                          {supabaseSetupError}
+                        </div>
+                      )}
+
+                      {supabaseSetupResult?.generatedDbPassword && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900">
+                          <p className="font-bold">Generated DB password (save it):</p>
+                          <p className="font-mono break-all mt-1">
+                            {supabaseSetupResult.generatedDbPassword}
+                          </p>
+                        </div>
+                      )}
+
+                      {supabaseSetupResult?.checks && (
+                        <div className="bg-white border border-gray-200 rounded-xl p-3">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Status
+                          </p>
+                          <div className="space-y-1.5 text-xs">
+                            {Object.entries(supabaseSetupResult.checks as Record<string, any>).map(
+                              ([key, value]) => (
+                                <div key={key} className="flex items-center justify-between gap-3">
+                                  <span className="font-mono text-gray-600">{key}</span>
+                                  <span
+                                    className={`font-bold ${(value as any)?.ok ? 'text-green-700' : 'text-red-700'}`}
+                                  >
+                                    {(value as any)?.ok ? 'OK' : 'FAIL'}
+                                  </span>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-2 bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Admin Token
+                      </label>
+                      <button
+                        onClick={fetchAnalytics}
+                        disabled={isLoadingAnalytics}
+                        className="px-3 py-2 rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        <RefreshCw size={14} className={isLoadingAnalytics ? 'animate-spin' : ''} />
+                        Refresh
+                      </button>
+                    </div>
+                    <input
+                      type="password"
+                      value={analyticsAdminToken}
+                      onChange={(e) => setAnalyticsAdminToken(e.target.value)}
+                      placeholder="OPENBENTO_ANALYTICS_ADMIN_TOKEN"
+                      className="w-full bg-white border border-gray-200 rounded-xl p-2.5 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-medium text-gray-700"
+                    />
+                    <div className="flex items-center gap-3">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Range
+                      </label>
+                      <select
+                        value={analyticsDays}
+                        onChange={(e) => setAnalyticsDays(Number(e.target.value))}
+                        className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700"
+                      >
+                        <option value={7}>Last 7 days</option>
+                        <option value={30}>Last 30 days</option>
+                        <option value={90}>Last 90 days</option>
+                      </select>
+                      {analyticsData?.sampled && (
+                        <span className="ml-auto inline-flex items-center gap-2 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
+                          <AlertTriangle size={14} />
+                          Sampled
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-400">
+                      This dashboard reads from the <code>openbento-analytics-admin</code> Edge
+                      Function using your admin token.
+                    </p>
+                  </div>
+
+                  <div className="bg-white border border-gray-100 rounded-xl p-3">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                      Totals
+                    </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-gray-700">Page views</span>
+                        <span className="text-sm font-bold text-gray-900">
+                          {analyticsData?.totals?.pageViews ?? '—'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-gray-700">Clicks</span>
+                        <span className="text-sm font-bold text-gray-900">
+                          {analyticsData?.totals?.clicks ?? '—'}
+                        </span>
                       </div>
                     </div>
                   </div>
-
-                  {analyticsError && (
-                    <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-sm text-red-700 font-semibold">
-                      {analyticsError}
-                    </div>
-                  )}
-
-                  {analyticsData && !analyticsError && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <div className="bg-white border border-gray-100 rounded-xl p-3">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Top destinations</p>
-                        <div className="space-y-2">
-                          {(analyticsData.topDestinations || []).length === 0 ? (
-                            <p className="text-sm text-gray-400">No clicks yet.</p>
-                          ) : (
-                            analyticsData.topDestinations.map((d: any) => (
-                              <div key={d.key} className="flex items-start justify-between gap-4">
-                                <p className="text-xs font-mono text-gray-700 break-all">{d.key}</p>
-                                <span className="text-xs font-bold text-gray-900 shrink-0">{d.clicks}</span>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="bg-white border border-gray-100 rounded-xl p-3">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Top referrers</p>
-                        <div className="space-y-2">
-                          {(analyticsData.topReferrers || []).length === 0 ? (
-                            <p className="text-sm text-gray-400">No referrers yet.</p>
-                          ) : (
-                            analyticsData.topReferrers.map((r: any) => (
-                              <div key={r.host} className="flex items-center justify-between gap-4">
-                                <p className="text-xs font-mono text-gray-700 break-all">{r.host}</p>
-                                <span className="text-xs font-bold text-gray-900 shrink-0">{r.pageViews}</span>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                <div className="p-6 pt-4 border-t border-gray-100">
-                    <button onClick={() => setShowAnalyticsModal(false)} className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors">
-                        Close
-                    </button>
-                </div>
-             </motion.div>
+                {analyticsError && (
+                  <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-sm text-red-700 font-semibold">
+                    {analyticsError}
+                  </div>
+                )}
+
+                {analyticsData && !analyticsError && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="bg-white border border-gray-100 rounded-xl p-3">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                        Top destinations
+                      </p>
+                      <div className="space-y-2">
+                        {(analyticsData.topDestinations || []).length === 0 ? (
+                          <p className="text-sm text-gray-400">No clicks yet.</p>
+                        ) : (
+                          analyticsData.topDestinations.map((d: any) => (
+                            <div key={d.key} className="flex items-start justify-between gap-4">
+                              <p className="text-xs font-mono text-gray-700 break-all">{d.key}</p>
+                              <span className="text-xs font-bold text-gray-900 shrink-0">
+                                {d.clicks}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-gray-100 rounded-xl p-3">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                        Top referrers
+                      </p>
+                      <div className="space-y-2">
+                        {(analyticsData.topReferrers || []).length === 0 ? (
+                          <p className="text-sm text-gray-400">No referrers yet.</p>
+                        ) : (
+                          analyticsData.topReferrers.map((r: any) => (
+                            <div key={r.host} className="flex items-center justify-between gap-4">
+                              <p className="text-xs font-mono text-gray-700 break-all">{r.host}</p>
+                              <span className="text-xs font-bold text-gray-900 shrink-0">
+                                {r.pageViews}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 pt-4 border-t border-gray-100">
+                <button
+                  onClick={() => setShowAnalyticsModal(false)}
+                  className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
-      )}
+        )}
       </AnimatePresence>
-
     </div>
   );
 };

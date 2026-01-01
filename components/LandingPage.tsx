@@ -1,6 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Github, ArrowRight, Sparkles, Zap, Shield, Globe, Star, ChevronRight, Play } from 'lucide-react';
+import {
+  Github,
+  ArrowRight,
+  Sparkles,
+  Zap,
+  Shield,
+  Globe,
+  Star,
+  ChevronRight,
+  Play,
+} from 'lucide-react';
 
 interface LandingPageProps {
   onStart: () => void;
@@ -9,7 +19,6 @@ interface LandingPageProps {
 const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
   return (
     <div className="min-h-screen bg-[#FAFAFA] text-gray-900 font-sans selection:bg-black selection:text-white overflow-x-hidden">
-      
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -21,16 +30,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
               <span className="font-bold text-lg tracking-tight">OpenBento</span>
             </div>
             <div className="flex items-center gap-3">
-              <a 
-                href="https://github.com/yoanbernabeu/openbento" 
-                target="_blank" 
+              <a
+                href="https://github.com/yoanbernabeu/openbento"
+                target="_blank"
                 rel="noreferrer"
                 className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-black hover:bg-gray-100 transition-all"
               >
                 <Github size={18} />
                 <span>Star on GitHub</span>
               </a>
-              <button 
+              <button
                 onClick={onStart}
                 className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-black transition-all shadow-md hover:shadow-lg flex items-center gap-2"
               >
@@ -46,7 +55,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
         {/* Decorative elements */}
         <div className="absolute top-20 left-10 w-72 h-72 bg-purple-200 rounded-full blur-[120px] opacity-40" />
         <div className="absolute top-40 right-10 w-96 h-96 bg-blue-200 rounded-full blur-[120px] opacity-30" />
-        
+
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -54,14 +63,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
             transition={{ duration: 0.7, ease: [0.25, 0.8, 0.25, 1] }}
           >
             {/* Bento.me Sunset Banner */}
-            <a 
-              href="https://bento.me/home/bento-sunset" 
-              target="_blank" 
+            <a
+              href="https://bento.me/home/bento-sunset"
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-amber-50 border border-amber-200 text-sm font-medium text-amber-800 mb-6 hover:shadow-md transition-all group"
             >
               <span className="text-lg">🌅</span>
-              <span>Bento.me shuts down Feb 13, 2026 — <span className="underline group-hover:text-orange-900">Don't be sad, OpenBento is here!</span></span>
+              <span>
+                Bento.me shuts down Feb 13, 2026 —{' '}
+                <span className="underline group-hover:text-orange-900">
+                  Don't be sad, OpenBento is here!
+                </span>
+              </span>
               <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </a>
 
@@ -72,26 +86,31 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
               <span className="relative">
                 identity
                 <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
-                  <path d="M2 10C50 2 150 2 298 10" stroke="#F59E0B" strokeWidth="4" strokeLinecap="round"/>
+                  <path
+                    d="M2 10C50 2 150 2 298 10"
+                    stroke="#F59E0B"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </span>
-              <span className="text-gray-900">{" "}in minutes.</span>
+              <span className="text-gray-900"> in minutes.</span>
             </h1>
 
             <p className="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed mb-10">
-              The open-source alternative to Bento.me. Build a stunning link-in-bio page 
-              with our Bento-style editor. No coding required. Your data stays yours — forever.
+              The open-source alternative to Bento.me. Build a stunning link-in-bio page with our
+              Bento-style editor. No coding required. Your data stays yours — forever.
             </p>
           </motion.div>
 
           {/* CTA Buttons */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
           >
-            <button 
+            <button
               onClick={onStart}
               className="group h-14 px-8 rounded-2xl bg-gray-900 text-white font-semibold text-lg flex items-center gap-3 hover:bg-black transition-all shadow-xl hover:shadow-2xl hover:scale-[1.02]"
             >
@@ -100,7 +119,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                 <ArrowRight size={18} />
               </div>
             </button>
-            <a 
+            <a
               href="https://github.com/yoanbernabeu/openbento"
               target="_blank"
               rel="noreferrer"
@@ -112,7 +131,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           </motion.div>
 
           {/* Hero Preview */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 60, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 1, delay: 0.4, ease: [0.25, 0.8, 0.25, 1] }}
@@ -134,7 +153,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Preview Content */}
                 <div className="bg-[#FAFAFA] p-8 min-h-[400px] flex">
                   {/* Left Profile */}
@@ -143,7 +162,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                     <h3 className="text-2xl font-bold text-gray-900">Alex Chen</h3>
                     <p className="text-gray-500 text-sm mt-1">Creative Developer</p>
                   </div>
-                  
+
                   {/* Right Grid */}
                   <div className="flex-1 grid grid-cols-3 gap-3 auto-rows-[80px]">
                     <div className="col-span-2 row-span-2 bg-violet-600 rounded-2xl shadow-md flex items-center justify-center">
@@ -187,7 +206,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-12 opacity-50">
             {['Developers', 'Designers', 'Creators', 'Freelancers', 'Artists'].map((text, i) => (
-              <span key={i} className="text-2xl font-bold text-gray-300">{text}</span>
+              <span key={i} className="text-2xl font-bold text-gray-300">
+                {text}
+              </span>
             ))}
           </div>
         </div>
@@ -203,55 +224,61 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <span className="text-sm font-semibold text-purple-600 uppercase tracking-wider">Features</span>
-              <h2 className="text-4xl font-bold tracking-tight mt-3 mb-4">Everything you need, nothing you don't</h2>
-              <p className="text-gray-500 max-w-xl mx-auto">Simple, powerful tools to create your perfect link-in-bio page.</p>
+              <span className="text-sm font-semibold text-purple-600 uppercase tracking-wider">
+                Features
+              </span>
+              <h2 className="text-4xl font-bold tracking-tight mt-3 mb-4">
+                Everything you need, nothing you don't
+              </h2>
+              <p className="text-gray-500 max-w-xl mx-auto">
+                Simple, powerful tools to create your perfect link-in-bio page.
+              </p>
             </motion.div>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { 
-                icon: <div className="text-3xl">🎨</div>, 
-                title: 'Visual Editor', 
+              {
+                icon: <div className="text-3xl">🎨</div>,
+                title: 'Visual Editor',
                 desc: 'Drag, drop, resize. Build your layout visually without touching code.',
                 bg: 'bg-pink-50',
-                border: 'border-pink-100'
+                border: 'border-pink-100',
               },
-              { 
-                icon: <div className="text-3xl">📱</div>, 
-                title: 'Mobile Responsive', 
+              {
+                icon: <div className="text-3xl">📱</div>,
+                title: 'Mobile Responsive',
                 desc: 'Looks perfect on every device. Preview in real-time.',
                 bg: 'bg-blue-50',
-                border: 'border-blue-100'
+                border: 'border-blue-100',
               },
-              { 
-                icon: <div className="text-3xl">🔗</div>, 
-                title: 'Rich Integrations', 
+              {
+                icon: <div className="text-3xl">🔗</div>,
+                title: 'Rich Integrations',
                 desc: 'YouTube, Instagram, Maps, and more. Embed dynamic content easily.',
                 bg: 'bg-violet-50',
-                border: 'border-violet-100'
+                border: 'border-violet-100',
               },
-              { 
-                icon: <div className="text-3xl">🚀</div>, 
-                title: 'One-Click Deploy', 
+              {
+                icon: <div className="text-3xl">🚀</div>,
+                title: 'One-Click Deploy',
                 desc: 'Export to GitHub Pages or any static host in seconds.',
                 bg: 'bg-amber-50',
-                border: 'border-amber-100'
+                border: 'border-amber-100',
               },
-              { 
-                icon: <div className="text-3xl">🔒</div>, 
-                title: 'Privacy First', 
+              {
+                icon: <div className="text-3xl">🔒</div>,
+                title: 'Privacy First',
                 desc: 'No tracking, no analytics, no cookies. Your data stays in your browser.',
                 bg: 'bg-emerald-50',
-                border: 'border-emerald-100'
+                border: 'border-emerald-100',
               },
-              { 
-                icon: <div className="text-3xl">💾</div>, 
-                title: 'Local Storage', 
+              {
+                icon: <div className="text-3xl">💾</div>,
+                title: 'Local Storage',
                 desc: 'Save multiple bentos locally. Switch between projects instantly.',
                 bg: 'bg-gray-50',
-                border: 'border-gray-200'
+                border: 'border-gray-200',
               },
             ].map((feature, i) => (
               <motion.div
@@ -263,7 +290,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                 className={`${feature.bg} p-8 rounded-3xl border ${feature.border} hover:shadow-lg transition-all group`}
               >
                 <div className="mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold mb-2 group-hover:text-gray-900">{feature.title}</h3>
+                <h3 className="text-xl font-bold mb-2 group-hover:text-gray-900">
+                  {feature.title}
+                </h3>
                 <p className="text-gray-500 leading-relaxed text-sm">{feature.desc}</p>
               </motion.div>
             ))}
@@ -277,17 +306,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500 rounded-full blur-[150px]" />
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500 rounded-full blur-[150px]" />
         </div>
-        
+
         <div className="max-w-5xl mx-auto relative z-10">
           <div className="text-center mb-16">
-            <span className="text-sm font-semibold text-purple-400 uppercase tracking-wider">How it works</span>
+            <span className="text-sm font-semibold text-purple-400 uppercase tracking-wider">
+              How it works
+            </span>
             <h2 className="text-4xl font-bold tracking-tight mt-3">Ready in 3 steps</h2>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { step: '01', title: 'Design', desc: 'Use our visual editor to create your perfect layout' },
-              { step: '02', title: 'Customize', desc: 'Add your links, colors, and personal touch' },
+              {
+                step: '01',
+                title: 'Design',
+                desc: 'Use our visual editor to create your perfect layout',
+              },
+              {
+                step: '02',
+                title: 'Customize',
+                desc: 'Add your links, colors, and personal touch',
+              },
               { step: '03', title: 'Deploy', desc: 'Export and host anywhere for free' },
             ].map((item, i) => (
               <motion.div
@@ -310,7 +349,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
       {/* Final CTA */}
       <section className="py-32 px-6 relative">
         <div className="absolute inset-0 bg-gray-50" />
-        
+
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -324,7 +363,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
             <p className="text-xl text-gray-500 mb-10">
               Join thousands of creators who've built their digital identity with OpenBento.
             </p>
-            <button 
+            <button
               onClick={onStart}
               className="group h-16 px-10 rounded-2xl bg-gray-900 text-white font-semibold text-xl hover:bg-black transition-all shadow-2xl hover:shadow-3xl hover:scale-[1.02] inline-flex items-center gap-3"
             >
@@ -341,11 +380,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-900 text-white rounded-lg flex items-center justify-center font-bold text-sm">B</div>
+              <div className="w-8 h-8 bg-gray-900 text-white rounded-lg flex items-center justify-center font-bold text-sm">
+                B
+              </div>
               <span className="font-semibold">OpenBento</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500">
-              <a href="https://github.com/yoanbernabeu/openbento" target="_blank" rel="noreferrer" className="hover:text-black transition-colors flex items-center gap-2">
+              <a
+                href="https://github.com/yoanbernabeu/openbento"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-black transition-colors flex items-center gap-2"
+              >
                 <Github size={16} /> GitHub
               </a>
               <span>&copy; {new Date().getFullYear()} OpenBento</span>

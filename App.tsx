@@ -5,25 +5,21 @@ import AnalyticsPage from './components/AnalyticsPage';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ENABLE_LANDING = import.meta.env.VITE_ENABLE_LANDING === 'true';
-const LazyLandingPage = ENABLE_LANDING ? React.lazy(() => import('./components/LandingPage')) : null;
+const LazyLandingPage = ENABLE_LANDING
+  ? React.lazy(() => import('./components/LandingPage'))
+  : null;
 
-function App() {
-  const route = (() => {
-    if (typeof window === 'undefined') return '/';
-    const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
-    const pathname = window.location.pathname;
-    const withoutBase = base && pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
-    return (withoutBase || '/').replace(/\/$/, '') || '/';
-  })();
+// Helper to get current route
+function getRoute(): string {
+  if (typeof window === 'undefined') return '/';
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+  const pathname = window.location.pathname;
+  const withoutBase = base && pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
+  return (withoutBase || '/').replace(/\/$/, '') || '/';
+}
 
-  if (route === '/preview') {
-    return <PreviewPage />;
-  }
-
-  if (route === '/analytics') {
-    return <AnalyticsPage />;
-  }
-
+// Separate component for the main app with landing page support
+function MainApp() {
   const [page, setPage] = useState<'landing' | 'builder'>(ENABLE_LANDING ? 'landing' : 'builder');
 
   if (!ENABLE_LANDING) {
@@ -31,7 +27,13 @@ function App() {
   }
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center text-gray-400">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center text-gray-400">
+          Loading...
+        </div>
+      }
+    >
       <AnimatePresence mode="wait">
         {page === 'landing' ? (
           <motion.div
@@ -56,6 +58,20 @@ function App() {
       </AnimatePresence>
     </Suspense>
   );
+}
+
+function App() {
+  const route = getRoute();
+
+  if (route === '/preview') {
+    return <PreviewPage />;
+  }
+
+  if (route === '/analytics') {
+    return <AnalyticsPage />;
+  }
+
+  return <MainApp />;
 }
 
 export default App;

@@ -5,7 +5,7 @@ export enum BlockType {
   SOCIAL = 'SOCIAL',
   SOCIAL_ICON = 'SOCIAL_ICON', // Small icon-only social block for 9x9 grid
   MAP = 'MAP',
-  SPACER = 'SPACER'
+  SPACER = 'SPACER',
 }
 
 export type SocialPlatform =
@@ -58,11 +58,11 @@ export interface BlockData {
   customBackground?: string; // Raw CSS value (hex or gradient)
   textColor?: string; // 'text-black' or 'text-white'
   rotation?: number; // Removed usage, kept for type safety if needed, or remove.
-  
+
   // Grid positioning (explicit placement)
   gridColumn?: number; // 1-based column start position
   gridRow?: number; // 1-based row start position
-  
+
   // YouTube specific
   channelId?: string; // Persist the ID for dynamic fetching
   youtubeVideoId?: string; // For Single Mode (fallback or initial)

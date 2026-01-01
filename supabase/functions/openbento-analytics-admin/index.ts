@@ -1,35 +1,35 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-openbento-admin-token",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-openbento-admin-token',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL");
-const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 if (!supabaseUrl || !serviceRoleKey) {
-  throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+  throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
 }
 
-const expectedToken = Deno.env.get("OPENBENTO_ANALYTICS_ADMIN_TOKEN");
+const expectedToken = Deno.env.get('OPENBENTO_ANALYTICS_ADMIN_TOKEN');
 if (!expectedToken) {
-  throw new Error("Missing OPENBENTO_ANALYTICS_ADMIN_TOKEN");
+  throw new Error('Missing OPENBENTO_ANALYTICS_ADMIN_TOKEN');
 }
 
 const supabase = createClient(supabaseUrl, serviceRoleKey);
 
 const clampText = (value: unknown, maxLen: number): string | null => {
-  if (typeof value !== "string") return null;
+  if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
   return trimmed.length > maxLen ? trimmed.slice(0, maxLen) : trimmed;
 };
 
 const clampInt = (value: unknown, min: number, max: number): number | null => {
-  if (typeof value !== "number" || !Number.isFinite(value)) return null;
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
   const n = Math.trunc(value);
   if (n < min || n > max) return null;
   return n;
@@ -38,13 +38,13 @@ const clampInt = (value: unknown, min: number, max: number): number | null => {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 
 const getToken = (req: Request): string | null => {
-  const headerToken = req.headers.get("x-openbento-admin-token");
+  const headerToken = req.headers.get('x-openbento-admin-token');
   if (headerToken) return headerToken.trim();
-  const auth = req.headers.get("authorization");
+  const auth = req.headers.get('authorization');
   if (!auth) return null;
   const match = auth.match(/^Bearer\s+(.+)$/i);
   return match?.[1]?.trim() ?? null;
@@ -53,20 +53,20 @@ const getToken = (req: Request): string | null => {
 const getDayKey = (iso: string): string => iso.slice(0, 10);
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   const token = getToken(req);
-  if (!token || token !== expectedToken) return json({ error: "Unauthorized" }, 401);
+  if (!token || token !== expectedToken) return json({ error: 'Unauthorized' }, 401);
 
   let siteId: string | null = null;
   let days: number | null = null;
 
   const url = new URL(req.url);
-  siteId = clampText(url.searchParams.get("siteId"), 128);
-  const daysParam = url.searchParams.get("days");
+  siteId = clampText(url.searchParams.get('siteId'), 128);
+  const daysParam = url.searchParams.get('days');
   if (daysParam) days = clampInt(Number(daysParam), 1, 365);
 
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     try {
       const payload = (await req.json()) as { siteId?: string; days?: number };
       siteId = clampText(payload.siteId ?? siteId, 128);
@@ -74,23 +74,23 @@ Deno.serve(async (req) => {
     } catch {
       // ignore body parse errors (query params still work)
     }
-  } else if (req.method !== "GET") {
-    return json({ error: "Method Not Allowed" }, 405);
+  } else if (req.method !== 'GET') {
+    return json({ error: 'Method Not Allowed' }, 405);
   }
 
-  if (!siteId) return json({ error: "Missing siteId" }, 400);
+  if (!siteId) return json({ error: 'Missing siteId' }, 400);
   const rangeDays = days ?? 30;
   const since = new Date(Date.now() - rangeDays * 24 * 60 * 60 * 1000).toISOString();
 
   const { data, error } = await supabase
-    .from("openbento_analytics_events")
-    .select("created_at,event_type,block_id,destination_url,referrer")
-    .eq("site_id", siteId)
-    .gte("created_at", since)
-    .order("created_at", { ascending: false })
+    .from('openbento_analytics_events')
+    .select('created_at,event_type,block_id,destination_url,referrer')
+    .eq('site_id', siteId)
+    .gte('created_at', since)
+    .order('created_at', { ascending: false })
     .limit(10_000);
 
-  if (error) return json({ error: "Query failed" }, 500);
+  if (error) return json({ error: 'Query failed' }, 500);
 
   const events = data ?? [];
   const totals = { pageViews: 0, clicks: 0 };
@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     const day = getDayKey(e.created_at);
     const current = daily.get(day) ?? { day, pageViews: 0, clicks: 0 };
 
-    if (e.event_type === "page_view") {
+    if (e.event_type === 'page_view') {
       totals.pageViews += 1;
       current.pageViews += 1;
 
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
           referrers.set(r, (referrers.get(r) ?? 0) + 1);
         }
       }
-    } else if (e.event_type === "click") {
+    } else if (e.event_type === 'click') {
       totals.clicks += 1;
       current.clicks += 1;
 
@@ -148,4 +148,3 @@ Deno.serve(async (req) => {
     sampled: events.length >= 10_000,
   });
 });
-

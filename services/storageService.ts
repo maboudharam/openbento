@@ -49,18 +49,18 @@ export const getAllBentos = (): SavedBento[] => {
 // Get a specific bento by ID
 export const getBento = (id: string): SavedBento | null => {
   const bentos = getAllBentos();
-  return bentos.find(b => b.id === id) || null;
+  return bentos.find((b) => b.id === id) || null;
 };
 
 // Save a bento (create or update)
 export const saveBento = (bento: SavedBento): void => {
   try {
     const bentos = getAllBentos();
-    const existingIndex = bentos.findIndex(b => b.id === bento.id);
+    const existingIndex = bentos.findIndex((b) => b.id === bento.id);
 
     const updatedBento = {
       ...bento,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     };
 
     if (existingIndex >= 0) {
@@ -76,7 +76,9 @@ export const saveBento = (bento: SavedBento): void => {
 };
 
 // Create a new bento from JSON template
-export const createBentoFromJSON = async (templatePath: string = '/bentos/default.json'): Promise<SavedBento> => {
+export const createBentoFromJSON = async (
+  templatePath: string = '/bentos/default.json'
+): Promise<SavedBento> => {
   try {
     const response = await fetch(templatePath);
     if (!response.ok) throw new Error('Failed to load template');
@@ -93,13 +95,13 @@ export const createBentoFromJSON = async (templatePath: string = '/bentos/defaul
         gridVersion: template.gridVersion ?? GRID_VERSION,
         profile: {
           ...template.profile,
-          avatarUrl: template.profile.avatarUrl || AVATAR_PLACEHOLDER
+          avatarUrl: template.profile.avatarUrl || AVATAR_PLACEHOLDER,
         },
-        blocks: template.blocks.map(b => ({
+        blocks: template.blocks.map((b) => ({
           ...b,
-          id: generateId() // Generate new IDs to avoid conflicts
-        }))
-      }
+          id: generateId(), // Generate new IDs to avoid conflicts
+        })),
+      },
     };
 
     saveBento(newBento);
@@ -131,7 +133,7 @@ export const createBento = (name: string): SavedBento => {
         primaryColor: 'blue',
         showBranding: true,
         analytics: { enabled: false, supabaseUrl: '' },
-        socialAccounts: []
+        socialAccounts: [],
       },
       blocks: [
         {
@@ -145,10 +147,10 @@ export const createBento = (name: string): SavedBento => {
           gridColumn: 1,
           gridRow: 1,
           color: 'bg-gray-900',
-          textColor: 'text-white'
-        }
-      ]
-    }
+          textColor: 'text-white',
+        },
+      ],
+    },
   };
 
   saveBento(newBento);
@@ -160,7 +162,7 @@ export const createBento = (name: string): SavedBento => {
 // Delete a bento
 export const deleteBento = (id: string): void => {
   try {
-    const bentos = getAllBentos().filter(b => b.id !== id);
+    const bentos = getAllBentos().filter((b) => b.id !== id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(bentos));
 
     if (getActiveBentoId() === id) {
@@ -253,7 +255,7 @@ export const updateBentoData = (id: string, data: SiteData): void => {
     saveBento({
       ...bento,
       data,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     });
   }
 };
@@ -265,7 +267,7 @@ export const renameBento = (id: string, newName: string): void => {
     saveBento({
       ...bento,
       name: newName,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     });
   }
 };
@@ -281,7 +283,7 @@ export const exportBentoToJSON = (bento: SavedBento): BentoJSON => {
     profile: bento.data.profile,
     blocks: bento.data.blocks,
     gridVersion: bento.data.gridVersion ?? GRID_VERSION,
-    exportedAt: Date.now()
+    exportedAt: Date.now(),
   };
 };
 
@@ -319,13 +321,13 @@ export const importBentoFromJSON = (json: BentoJSON): SavedBento => {
         primaryColor: json.profile?.primaryColor || 'blue',
         showBranding: json.profile?.showBranding ?? true,
         analytics: json.profile?.analytics || { enabled: false, supabaseUrl: '' },
-        socialAccounts: json.profile?.socialAccounts || []
+        socialAccounts: json.profile?.socialAccounts || [],
       },
-      blocks: (json.blocks || []).map(b => ({
+      blocks: (json.blocks || []).map((b) => ({
         ...b,
-        id: generateId() // Generate new IDs
-      }))
-    }
+        id: generateId(), // Generate new IDs
+      })),
+    },
   };
 
   saveBento(newBento);
@@ -383,7 +385,7 @@ export const addAsset = (name: string, type: string, data: string): Asset => {
     name,
     type,
     data,
-    createdAt: Date.now()
+    createdAt: Date.now(),
   };
 
   const assets = getAssets();
@@ -395,7 +397,7 @@ export const addAsset = (name: string, type: string, data: string): Asset => {
 
 // Remove an asset
 export const removeAsset = (id: string): void => {
-  const assets = getAssets().filter(a => a.id !== id);
+  const assets = getAssets().filter((a) => a.id !== id);
   saveAssets(assets);
 };
 
@@ -404,7 +406,7 @@ export const exportAssetsJSON = (): { version: string; lastUpdated: number; asse
   return {
     version: '1.0',
     lastUpdated: Date.now(),
-    assets: getAssets()
+    assets: getAssets(),
   };
 };
 

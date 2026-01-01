@@ -67,7 +67,7 @@ export const isValidLocationString = (location: string | undefined | null): bool
     /^blob:/i,
   ];
 
-  return !dangerousPatterns.some(pattern => pattern.test(location.trim()));
+  return !dangerousPatterns.some((pattern) => pattern.test(location.trim()));
 };
 
 /**

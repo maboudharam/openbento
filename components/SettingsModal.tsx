@@ -1,10 +1,29 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, Settings, Trash2, Upload, X, Code, User, Share2, BarChart3, CheckCircle, AlertCircle, Loader2, Database } from 'lucide-react';
+import {
+  Plus,
+  Settings,
+  Trash2,
+  Upload,
+  X,
+  Code,
+  User,
+  Share2,
+  BarChart3,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  Database,
+} from 'lucide-react';
 import type { SocialAccount, SocialPlatform, UserProfile, BlockData } from '../types';
 import { AVATAR_PLACEHOLDER } from '../constants';
 import ImageCropModal from './ImageCropModal';
-import { buildSocialUrl, getSocialPlatformOption, SOCIAL_PLATFORM_OPTIONS, formatFollowerCount } from '../socialPlatforms';
+import {
+  buildSocialUrl,
+  getSocialPlatformOption,
+  SOCIAL_PLATFORM_OPTIONS,
+  formatFollowerCount,
+} from '../socialPlatforms';
 
 type SettingsModalProps = {
   isOpen: boolean;
@@ -48,15 +67,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const [supabaseDbPassword, setSupabaseDbPassword] = useState('');
   const [supabaseAnonKey, setSupabaseAnonKey] = useState('');
   const [setupLoading, setSetupLoading] = useState(false);
-  const [setupResult, setSetupResult] = useState<{ ok: boolean; message: string; logs?: string[] } | null>(null);
-  const [savedConfig, setSavedConfig] = useState<{ projectUrl?: string; anonKey?: string } | null>(null);
+  const [setupResult, setSetupResult] = useState<{
+    ok: boolean;
+    message: string;
+    logs?: string[];
+  } | null>(null);
+  const [savedConfig, setSavedConfig] = useState<{ projectUrl?: string; anonKey?: string } | null>(
+    null
+  );
 
   // Load saved config on mount
   useEffect(() => {
     if (isOpen && activeTab === 'analytics') {
       fetch('/__openbento/config')
-        .then(r => r.json())
-        .then(data => {
+        .then((r) => r.json())
+        .then((data) => {
           if (data.ok && data.config) {
             setSavedConfig(data.config);
             setSupabaseProjectUrl(data.config.projectUrl || '');
@@ -70,7 +95,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   enabled: true,
                   supabaseUrl: data.config.projectUrl,
                   anonKey: data.config.anonKey,
-                }
+                },
               });
             }
           }
@@ -107,7 +132,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             enabled: true,
             supabaseUrl: supabaseProjectUrl,
             anonKey: supabaseAnonKey,
-          }
+          },
         });
       } else {
         setSetupResult({ ok: false, message: data.error || 'Setup failed', logs: data.logs });
@@ -137,11 +162,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const addSocialAccount = () => {
     if (!newHandle.trim()) return;
 
-    const exists = socialAccounts.some(acc => acc.platform === newPlatform);
+    const exists = socialAccounts.some((acc) => acc.platform === newPlatform);
     if (exists) {
       setProfile({
         ...profile,
-        socialAccounts: socialAccounts.map(acc =>
+        socialAccounts: socialAccounts.map((acc) =>
           acc.platform === newPlatform ? { ...acc, handle: newHandle.trim() } : acc
         ),
       });
@@ -159,14 +184,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const removeSocialAccount = (platform: SocialPlatform) => {
     setProfile({
       ...profile,
-      socialAccounts: socialAccounts.filter(acc => acc.platform !== platform),
+      socialAccounts: socialAccounts.filter((acc) => acc.platform !== platform),
     });
   };
 
   const updateSocialHandle = (platform: SocialPlatform, handle: string) => {
     setProfile({
       ...profile,
-      socialAccounts: socialAccounts.map(acc =>
+      socialAccounts: socialAccounts.map((acc) =>
         acc.platform === platform ? { ...acc, handle } : acc
       ),
     });
@@ -176,7 +201,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const numCount = count ? parseInt(count.replace(/\D/g, ''), 10) : undefined;
     setProfile({
       ...profile,
-      socialAccounts: socialAccounts.map(acc =>
+      socialAccounts: socialAccounts.map((acc) =>
         acc.platform === platform ? { ...acc, followerCount: numCount } : acc
       ),
     });
@@ -260,7 +285,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   <Settings size={18} />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">Settings</h2>
-                <p className="text-gray-500 mt-1 text-sm">Profile, social accounts, and configuration.</p>
+                <p className="text-gray-500 mt-1 text-sm">
+                  Profile, social accounts, and configuration.
+                </p>
               </div>
               <button
                 onClick={onClose}
@@ -297,9 +324,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   {/* Bento Name */}
                   {onBentoNameChange && (
                     <section className="space-y-3">
-                      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Bento</h3>
+                      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Bento
+                      </h3>
                       <div className="p-3 bg-white border border-gray-200 rounded-xl">
-                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Project Name</label>
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                          Project Name
+                        </label>
                         <input
                           type="text"
                           value={bentoName || ''}
@@ -307,18 +338,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                           className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:outline-none transition-all"
                           placeholder="My Bento"
                         />
-                        <p className="text-[10px] text-gray-400 mt-1.5">Used as filename when exporting JSON</p>
+                        <p className="text-[10px] text-gray-400 mt-1.5">
+                          Used as filename when exporting JSON
+                        </p>
                       </div>
                     </section>
                   )}
 
                   {/* Profile */}
                   <section className="space-y-4">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Profile</h3>
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      Profile
+                    </h3>
                     <div className="flex items-start gap-4">
                       <div className="shrink-0">
                         <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-100 ring-2 ring-white shadow-lg">
-                          <img src={profile.avatarUrl || AVATAR_PLACEHOLDER} alt="Avatar" className="w-full h-full object-cover" />
+                          <img
+                            src={profile.avatarUrl || AVATAR_PLACEHOLDER}
+                            alt="Avatar"
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                         <input
                           ref={avatarInputRef}
@@ -348,7 +387,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
                       <div className="flex-1 space-y-3">
                         <div>
-                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Name</label>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Name
+                          </label>
                           <input
                             value={profile.name}
                             onChange={(e) => setProfile({ ...profile, name: e.target.value })}
@@ -357,17 +398,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Avatar URL</label>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Avatar URL
+                          </label>
                           <input
                             value={profile.avatarUrl || ''}
                             onChange={(e) => setProfile({ ...profile, avatarUrl: e.target.value })}
                             className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-mono text-xs text-gray-700"
                             placeholder="/images/avatar.jpg or https://..."
                           />
-                          <p className="text-[10px] text-gray-400 mt-1">Enter a path or URL instead of uploading to avoid base64 encoding</p>
+                          <p className="text-[10px] text-gray-400 mt-1">
+                            Enter a path or URL instead of uploading to avoid base64 encoding
+                          </p>
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Bio</label>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Bio
+                          </label>
                           <textarea
                             value={profile.bio}
                             onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
@@ -381,15 +428,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
                   {/* Branding */}
                   <section className="space-y-3">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Branding</h3>
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      Branding
+                    </h3>
                     <div className="flex items-center justify-between gap-4 p-3 bg-white border border-gray-200 rounded-xl">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-gray-900">Show OpenBento credit</p>
-                        <p className="text-xs text-gray-400">Displays the OpenBento footer in the builder and export.</p>
+                        <p className="text-xs text-gray-400">
+                          Displays the OpenBento footer in the builder and export.
+                        </p>
                       </div>
                       <button
                         type="button"
-                        onClick={() => setProfile({ ...profile, showBranding: !(profile.showBranding !== false) })}
+                        onClick={() =>
+                          setProfile({
+                            ...profile,
+                            showBranding: !(profile.showBranding !== false),
+                          })
+                        }
                         className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
                           profile.showBranding !== false ? 'bg-gray-900' : 'bg-gray-200'
                         }`}
@@ -407,12 +463,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     {/* Social icons in header */}
                     <div className="flex items-center justify-between gap-4 p-3 bg-white border border-gray-200 rounded-xl">
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-gray-900">Social icons in header</p>
-                        <p className="text-xs text-gray-400">Display your social icons under your name and bio.</p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          Social icons in header
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          Display your social icons under your name and bio.
+                        </p>
                       </div>
                       <button
                         type="button"
-                        onClick={() => setProfile({ ...profile, showSocialInHeader: !profile.showSocialInHeader })}
+                        onClick={() =>
+                          setProfile({
+                            ...profile,
+                            showSocialInHeader: !profile.showSocialInHeader,
+                          })
+                        }
                         className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
                           profile.showSocialInHeader ? 'bg-gray-900' : 'bg-gray-200'
                         }`}
@@ -432,11 +497,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       <div className="flex items-center justify-between gap-4 p-3 bg-white border border-gray-200 rounded-xl ml-4">
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-gray-900">Show follower count</p>
-                          <p className="text-xs text-gray-400">Display follower numbers next to icons (e.g., 220k).</p>
+                          <p className="text-xs text-gray-400">
+                            Display follower numbers next to icons (e.g., 220k).
+                          </p>
                         </div>
                         <button
                           type="button"
-                          onClick={() => setProfile({ ...profile, showFollowerCount: !profile.showFollowerCount })}
+                          onClick={() =>
+                            setProfile({
+                              ...profile,
+                              showFollowerCount: !profile.showFollowerCount,
+                            })
+                          }
                           className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
                             profile.showFollowerCount ? 'bg-gray-900' : 'bg-gray-200'
                           }`}
@@ -455,11 +527,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
                   {/* Background Section */}
                   <section className="space-y-4">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Background</h3>
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      Background
+                    </h3>
 
                     {/* Background Color */}
                     <div className="space-y-3">
-                      <label className="block text-sm font-medium text-gray-700">Background Color</label>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Background Color
+                      </label>
 
                       {/* Color picker + Hex input row */}
                       <div className="flex items-center gap-3">
@@ -468,7 +544,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                           <input
                             type="color"
                             value={profile.backgroundColor || '#F7F7F7'}
-                            onChange={(e) => setProfile({ ...profile, backgroundColor: e.target.value, backgroundImage: undefined })}
+                            onChange={(e) =>
+                              setProfile({
+                                ...profile,
+                                backgroundColor: e.target.value,
+                                backgroundImage: undefined,
+                              })
+                            }
                             className="w-12 h-12 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-violet-400 transition-colors"
                             title="Open color picker"
                           />
@@ -484,7 +566,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                               onChange={(e) => {
                                 let val = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 6);
                                 if (val.length >= 3) {
-                                  setProfile({ ...profile, backgroundColor: `#${val}`, backgroundImage: undefined });
+                                  setProfile({
+                                    ...profile,
+                                    backgroundColor: `#${val}`,
+                                    backgroundImage: undefined,
+                                  });
                                 }
                               }}
                               placeholder="F7F7F7"
@@ -504,11 +590,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
                       {/* Preset colors */}
                       <div className="flex gap-2 flex-wrap">
-                        {['#F7F7F7', '#ffffff', '#f0f0f0', '#e5e5e5', '#1a1a1a', '#0a0a0a', '#1e293b', '#0f172a', '#fef3c7', '#dbeafe', '#dcfce7', '#fce7f3'].map((color) => (
+                        {[
+                          '#F7F7F7',
+                          '#ffffff',
+                          '#f0f0f0',
+                          '#e5e5e5',
+                          '#1a1a1a',
+                          '#0a0a0a',
+                          '#1e293b',
+                          '#0f172a',
+                          '#fef3c7',
+                          '#dbeafe',
+                          '#dcfce7',
+                          '#fce7f3',
+                        ].map((color) => (
                           <button
                             key={color}
                             type="button"
-                            onClick={() => setProfile({ ...profile, backgroundColor: color, backgroundImage: undefined })}
+                            onClick={() =>
+                              setProfile({
+                                ...profile,
+                                backgroundColor: color,
+                                backgroundImage: undefined,
+                              })
+                            }
                             className={`w-7 h-7 rounded-lg border-2 transition-all ${
                               profile.backgroundColor === color && !profile.backgroundImage
                                 ? 'border-violet-500 scale-110 shadow-md'
@@ -523,12 +628,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     {/* Background Image */}
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Background Image</label>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Background Image
+                      </label>
                       <div className="flex gap-2">
                         <input
                           type="text"
                           value={profile.backgroundImage || ''}
-                          onChange={(e) => setProfile({ ...profile, backgroundImage: e.target.value || undefined })}
+                          onChange={(e) =>
+                            setProfile({ ...profile, backgroundImage: e.target.value || undefined })
+                          }
                           placeholder="https://example.com/image.jpg"
                           className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                         />
@@ -543,7 +652,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                               if (file) {
                                 const reader = new FileReader();
                                 reader.onload = () => {
-                                  setProfile({ ...profile, backgroundImage: reader.result as string });
+                                  setProfile({
+                                    ...profile,
+                                    backgroundImage: reader.result as string,
+                                  });
                                 };
                                 reader.readAsDataURL(file);
                               }
@@ -563,7 +675,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       </div>
                       {profile.backgroundImage && (
                         <div className="relative w-full h-24 rounded-lg overflow-hidden border border-gray-200">
-                          <img src={profile.backgroundImage} alt="Background preview" className="w-full h-full object-cover" />
+                          <img
+                            src={profile.backgroundImage}
+                            alt="Background preview"
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                       )}
                     </div>
@@ -572,15 +688,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     {profile.backgroundImage && (
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <label className="block text-sm font-medium text-gray-700">Blur Amount</label>
-                          <span className="text-xs text-gray-400">{profile.backgroundBlur || 0}px</span>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Blur Amount
+                          </label>
+                          <span className="text-xs text-gray-400">
+                            {profile.backgroundBlur || 0}px
+                          </span>
                         </div>
                         <input
                           type="range"
                           min="0"
                           max="20"
                           value={profile.backgroundBlur || 0}
-                          onChange={(e) => setProfile({ ...profile, backgroundBlur: parseInt(e.target.value) })}
+                          onChange={(e) =>
+                            setProfile({ ...profile, backgroundBlur: parseInt(e.target.value) })
+                          }
                           className="w-full accent-violet-500"
                         />
                       </div>
@@ -593,13 +715,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               {activeTab === 'social' && (
                 <section className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Social Accounts</h3>
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      Social Accounts
+                    </h3>
                     <button
                       type="button"
                       onClick={() => {
                         // Set newPlatform to first available platform not already added
                         const availablePlatforms = SOCIAL_PLATFORM_OPTIONS.filter(
-                          opt => !socialAccounts.some(acc => acc.platform === opt.id)
+                          (opt) => !socialAccounts.some((acc) => acc.platform === opt.id)
                         );
                         if (availablePlatforms.length > 0) {
                           setNewPlatform(availablePlatforms[0].id);
@@ -634,9 +758,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         >
                           <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                             {BrandIcon ? (
-                              <BrandIcon size={18} style={{ color: option.brandColor }} />
+                              <span style={{ color: option.brandColor }}>
+                                <BrandIcon size={18} />
+                              </span>
                             ) : (
-                              <FallbackIcon size={18} className="text-gray-600" />
+                              <span className="text-gray-600">
+                                <FallbackIcon size={18} />
+                              </span>
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -653,12 +781,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             <input
                               type="text"
                               value={account.followerCount || ''}
-                              onChange={(e) => updateFollowerCount(account.platform, e.target.value)}
+                              onChange={(e) =>
+                                updateFollowerCount(account.platform, e.target.value)
+                              }
                               placeholder="Followers"
                               className="w-full text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-right focus:outline-none focus:ring-1 focus:ring-violet-500"
                             />
                             {account.followerCount && (
-                              <p className="text-[9px] text-gray-400 text-right mt-0.5">{formatFollowerCount(account.followerCount)}</p>
+                              <p className="text-[9px] text-gray-400 text-right mt-0.5">
+                                {formatFollowerCount(account.followerCount)}
+                              </p>
                             )}
                           </div>
                           {url && (
@@ -693,7 +825,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:outline-none"
                           >
                             {SOCIAL_PLATFORM_OPTIONS.filter(
-                              opt => !socialAccounts.some(acc => acc.platform === opt.id)
+                              (opt) => !socialAccounts.some((acc) => acc.platform === opt.id)
                             ).map((opt) => (
                               <option key={opt.id} value={opt.id}>
                                 {opt.label}
@@ -705,7 +837,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                           type="text"
                           value={newHandle}
                           onChange={(e) => setNewHandle(e.target.value)}
-                          placeholder={getSocialPlatformOption(newPlatform)?.placeholder || 'yourhandle'}
+                          placeholder={
+                            getSocialPlatformOption(newPlatform)?.placeholder || 'yourhandle'
+                          }
                           className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:outline-none"
                           onKeyDown={(e) => e.key === 'Enter' && addSocialAccount()}
                           autoFocus
@@ -740,9 +874,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               {activeTab === 'analytics' && (
                 <section className="space-y-6">
                   <div>
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Supabase Analytics</h3>
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                      Supabase Analytics
+                    </h3>
                     <p className="text-sm text-gray-500">
-                      Track page views and clicks on your exported bento. This requires a Supabase project.
+                      Track page views and clicks on your exported bento. This requires a Supabase
+                      project.
                     </p>
                   </div>
 
@@ -764,14 +901,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       Setup Instructions
                     </h4>
                     <ol className="text-xs text-gray-600 space-y-1 list-decimal list-inside">
-                      <li>Create a Supabase project at <a href="https://supabase.com" target="_blank" rel="noopener" className="text-violet-600 underline">supabase.com</a></li>
+                      <li>
+                        Create a Supabase project at{' '}
+                        <a
+                          href="https://supabase.com"
+                          target="_blank"
+                          rel="noopener"
+                          className="text-violet-600 underline"
+                        >
+                          supabase.com
+                        </a>
+                      </li>
                       <li>Copy your Project URL (e.g., https://xxx.supabase.co)</li>
                       <li>Copy your Database Password (from project creation)</li>
                       <li>Copy your Publishable Key (Settings → API → anon public)</li>
                       <li>Fill the form below and click "Setup Database"</li>
                     </ol>
                     <p className="text-xs text-amber-600 mt-2">
-                      ⚠️ This setup only works in dev mode. Credentials are stored locally and never committed.
+                      ⚠️ This setup only works in dev mode. Credentials are stored locally and never
+                      committed.
                     </p>
                   </div>
 
@@ -815,7 +963,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         placeholder="eyJhbGciOiJIUzI1NiIs..."
                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-all font-mono text-xs"
                       />
-                      <p className="text-xs text-gray-400 mt-1">Safe to use in client-side code. Never use the secret/service_role key here.</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Safe to use in client-side code. Never use the secret/service_role key here.
+                      </p>
                     </div>
 
                     {/* Save Config button */}
@@ -829,17 +979,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                           body: JSON.stringify({
                             projectUrl: supabaseProjectUrl,
                             anonKey: supabaseAnonKey,
-                            savedAt: new Date().toISOString()
+                            savedAt: new Date().toISOString(),
                           }),
                         }).then(() => {
-                          setSavedConfig({ projectUrl: supabaseProjectUrl, anonKey: supabaseAnonKey });
+                          setSavedConfig({
+                            projectUrl: supabaseProjectUrl,
+                            anonKey: supabaseAnonKey,
+                          });
                           setProfile({
                             ...profile,
                             analytics: {
                               enabled: true,
                               supabaseUrl: supabaseProjectUrl,
                               anonKey: supabaseAnonKey,
-                            }
+                            },
                           });
                           setSetupResult({ ok: true, message: 'Config saved!' });
                         });
@@ -870,25 +1023,33 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         </>
                       )}
                     </button>
-                    <p className="text-xs text-gray-400 text-center">Only needed once to create the analytics table</p>
+                    <p className="text-xs text-gray-400 text-center">
+                      Only needed once to create the analytics table
+                    </p>
                   </div>
 
                   {/* Result */}
                   {setupResult && (
-                    <div className={`p-4 rounded-xl ${setupResult.ok ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                    <div
+                      className={`p-4 rounded-xl ${setupResult.ok ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}
+                    >
                       <div className="flex items-center gap-2 mb-2">
                         {setupResult.ok ? (
                           <CheckCircle size={18} className="text-green-600" />
                         ) : (
                           <AlertCircle size={18} className="text-red-600" />
                         )}
-                        <span className={`text-sm font-medium ${setupResult.ok ? 'text-green-800' : 'text-red-800'}`}>
+                        <span
+                          className={`text-sm font-medium ${setupResult.ok ? 'text-green-800' : 'text-red-800'}`}
+                        >
                           {setupResult.message}
                         </span>
                       </div>
                       {setupResult.logs && (
                         <div className="mt-2 p-2 bg-black/5 rounded text-xs font-mono text-gray-600 max-h-32 overflow-auto">
-                          {setupResult.logs.map((log, i) => <div key={i}>{log}</div>)}
+                          {setupResult.logs.map((log, i) => (
+                            <div key={i}>{log}</div>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -897,19 +1058,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   {/* Enable toggle */}
                   <div className="pt-4 border-t border-gray-100">
                     <label className="flex items-center justify-between cursor-pointer">
-                      <span className="text-sm font-medium text-gray-700">Enable Analytics on Export</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        Enable Analytics on Export
+                      </span>
                       <input
                         type="checkbox"
                         checked={profile.analytics?.enabled || false}
-                        onChange={(e) => setProfile({
-                          ...profile,
-                          analytics: {
-                            ...profile.analytics,
-                            enabled: e.target.checked,
-                            supabaseUrl: supabaseProjectUrl || profile.analytics?.supabaseUrl,
-                            anonKey: supabaseAnonKey || profile.analytics?.anonKey,
-                          }
-                        })}
+                        onChange={(e) =>
+                          setProfile({
+                            ...profile,
+                            analytics: {
+                              ...profile.analytics,
+                              enabled: e.target.checked,
+                              supabaseUrl: supabaseProjectUrl || profile.analytics?.supabaseUrl,
+                              anonKey: supabaseAnonKey || profile.analytics?.anonKey,
+                            },
+                          })
+                        }
                         className="w-5 h-5 rounded text-violet-600 border-gray-300 focus:ring-violet-500"
                       />
                     </label>
@@ -925,8 +1090,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 <section className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Raw Configuration</h3>
-                      <p className="text-xs text-gray-400 mt-1">Edit the JSON directly. Be careful!</p>
+                      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Raw Configuration
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Edit the JSON directly. Be careful!
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -951,11 +1120,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   />
 
                   <div className="text-xs text-gray-400 space-y-1">
-                    <p><strong>Structure:</strong></p>
+                    <p>
+                      <strong>Structure:</strong>
+                    </p>
                     <ul className="list-disc list-inside space-y-0.5 text-gray-500">
-                      <li><code>name</code>: Bento project name</li>
-                      <li><code>profile</code>: User profile (name, bio, avatarUrl, etc.)</li>
-                      <li><code>blocks</code>: Array of blocks with gridColumn, gridRow, colSpan, rowSpan</li>
+                      <li>
+                        <code>name</code>: Bento project name
+                      </li>
+                      <li>
+                        <code>profile</code>: User profile (name, bio, avatarUrl, etc.)
+                      </li>
+                      <li>
+                        <code>blocks</code>: Array of blocks with gridColumn, gridRow, colSpan,
+                        rowSpan
+                      </li>
                     </ul>
                   </div>
                 </section>

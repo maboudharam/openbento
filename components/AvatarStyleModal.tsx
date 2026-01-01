@@ -181,21 +181,22 @@ const AvatarStyleModal: React.FC<AvatarStyleModalProps> = ({
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-medium text-gray-500 w-16">Color</span>
                       <div className="flex gap-2">
-                        {['#ffffff', '#000000', '#6366f1', '#ec4899', '#10b981', '#f59e0b'].map((color) => (
-                          <button
-                            key={color}
-                            onClick={() => updateStyle({ borderColor: color })}
-                            className={`w-7 h-7 rounded-full border-2 transition-all ${
-                              currentStyle.borderColor === color
-                                ? 'ring-2 ring-violet-500 ring-offset-2'
-                                : 'border-gray-200'
-                            }`}
-                            style={{ backgroundColor: color }}
-                          />
-                        ))}
+                        {['#ffffff', '#000000', '#6366f1', '#ec4899', '#10b981', '#f59e0b'].map(
+                          (color) => (
+                            <button
+                              key={color}
+                              onClick={() => updateStyle({ borderColor: color })}
+                              className={`w-7 h-7 rounded-full border-2 transition-all ${
+                                currentStyle.borderColor === color
+                                  ? 'ring-2 ring-violet-500 ring-offset-2'
+                                  : 'border-gray-200'
+                              }`}
+                              style={{ backgroundColor: color }}
+                            />
+                          )
+                        )}
                       </div>
                     </div>
-
                   </motion.div>
                 )}
               </div>

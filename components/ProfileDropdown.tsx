@@ -10,10 +10,10 @@ interface ProfileDropdownProps {
   onBentoChange: (bento: SavedBento) => void;
 }
 
-const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ 
-  activeBentoId, 
+const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
+  activeBentoId,
   activeBentoName,
-  onBentoChange 
+  onBentoChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [bentos, setBentos] = useState<SavedBento[]>([]);
@@ -72,7 +72,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   const handleDeleteBento = (e: React.MouseEvent, bentoId: string) => {
     e.stopPropagation();
 
-    const bentoToDelete = bentos.find(b => b.id === bentoId);
+    const bentoToDelete = bentos.find((b) => b.id === bentoId);
     if (!bentoToDelete) return;
 
     const confirmDelete = window.confirm(`Delete "${bentoToDelete.name}"? This cannot be undone.`);
@@ -95,9 +95,9 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
-    return date.toLocaleDateString('en-US', { 
-      day: 'numeric', 
-      month: 'short'
+    return date.toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'short',
     });
   };
 
@@ -110,9 +110,9 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       >
         <FolderOpen size={16} className="text-gray-500" />
         <span className="max-w-[120px] truncate">{activeBentoName}</span>
-        <ChevronDown 
-          size={16} 
-          className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+        <ChevronDown
+          size={16}
+          className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -128,15 +128,15 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
           >
             {/* Header */}
             <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">My Bentos</h3>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                My Bentos
+              </h3>
             </div>
 
             {/* Bentos List */}
             <div className="max-h-[240px] overflow-y-auto">
               {bentos.length === 0 ? (
-                <div className="px-4 py-6 text-center text-gray-400 text-sm">
-                  No bentos yet
-                </div>
+                <div className="px-4 py-6 text-center text-gray-400 text-sm">No bentos yet</div>
               ) : (
                 bentos.map((bento) => (
                   <div
@@ -152,17 +152,21 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
                       }}
                       className="flex-1 flex items-center gap-3 text-left min-w-0"
                     >
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${
-                        bento.id === activeBentoId
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}>
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${
+                          bento.id === activeBentoId
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
                         {bento.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate ${
-                          bento.id === activeBentoId ? 'text-blue-600' : 'text-gray-900'
-                        }`}>
+                        <p
+                          className={`text-sm font-medium truncate ${
+                            bento.id === activeBentoId ? 'text-blue-600' : 'text-gray-900'
+                          }`}
+                        >
                           {bento.name}
                         </p>
                         <p className="text-xs text-gray-400">

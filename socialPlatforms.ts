@@ -172,7 +172,8 @@ export const SOCIAL_PLATFORM_OPTIONS: SocialPlatformOption[] = [
     brandColor: '#0A66C2',
     placeholder: 'your-handle',
     kind: 'handle',
-    buildUrl: (input) => `https://www.linkedin.com/in/${encodeURIComponent(normalizeHandle(input))}/`,
+    buildUrl: (input) =>
+      `https://www.linkedin.com/in/${encodeURIComponent(normalizeHandle(input))}/`,
     formatHandleForDisplay: (h) => normalizeHandle(h),
   },
   {
@@ -238,7 +239,8 @@ export const SOCIAL_PLATFORM_OPTIONS: SocialPlatformOption[] = [
     brandColor: '#FF4500',
     placeholder: 'yourhandle',
     kind: 'handle',
-    buildUrl: (input) => `https://www.reddit.com/user/${encodeURIComponent(normalizeHandle(input))}/`,
+    buildUrl: (input) =>
+      `https://www.reddit.com/user/${encodeURIComponent(normalizeHandle(input))}/`,
     formatHandleForDisplay: (h) => `u/${normalizeHandle(h)}`,
   },
   {
@@ -349,7 +351,8 @@ export const SOCIAL_PLATFORM_OPTIONS: SocialPlatformOption[] = [
     brandColor: '#FFDD00',
     placeholder: 'yourhandle',
     kind: 'handle',
-    buildUrl: (input) => `https://www.buymeacoffee.com/${encodeURIComponent(normalizeHandle(input))}`,
+    buildUrl: (input) =>
+      `https://www.buymeacoffee.com/${encodeURIComponent(normalizeHandle(input))}`,
     formatHandleForDisplay: (h) => normalizeHandle(h),
   },
   {
@@ -360,7 +363,8 @@ export const SOCIAL_PLATFORM_OPTIONS: SocialPlatformOption[] = [
     brandColor: '#FFFC00',
     placeholder: 'yourhandle',
     kind: 'handle',
-    buildUrl: (input) => `https://www.snapchat.com/add/${encodeURIComponent(normalizeHandle(input))}`,
+    buildUrl: (input) =>
+      `https://www.snapchat.com/add/${encodeURIComponent(normalizeHandle(input))}`,
     formatHandleForDisplay: (h) => normalizeHandle(h),
   },
   {
@@ -393,7 +397,8 @@ export const SOCIAL_PLATFORM_OPTIONS: SocialPlatformOption[] = [
     brandColor: '#25D366',
     placeholder: '+33612345678',
     kind: 'handle',
-    buildUrl: (input) => `https://wa.me/${encodeURIComponent(normalizeHandle(input).replace(/[^0-9+]/g, ''))}`,
+    buildUrl: (input) =>
+      `https://wa.me/${encodeURIComponent(normalizeHandle(input).replace(/[^0-9+]/g, ''))}`,
     formatHandleForDisplay: (h) => normalizeHandle(h),
   },
   {
@@ -415,7 +420,7 @@ export const SOCIAL_PLATFORM_OPTIONS: SocialPlatformOption[] = [
 ];
 
 export const getSocialPlatformOption = (
-  platform: SocialPlatform | undefined,
+  platform: SocialPlatform | undefined
 ): SocialPlatformOption | undefined => {
   if (!platform) return undefined;
   return SOCIAL_PLATFORM_OPTIONS.find((p) => p.id === platform);
@@ -453,7 +458,7 @@ export const inferSocialPlatformFromUrl = (url: string | undefined): SocialPlatf
 
 export const extractHandleFromUrl = (
   platform: SocialPlatform | undefined,
-  url: string | undefined,
+  url: string | undefined
 ): string | undefined => {
   if (!platform || !url) return undefined;
   try {
@@ -521,7 +526,7 @@ export const extractHandleFromUrl = (
 
 export const getSocialDisplayHandle = (
   platform: SocialPlatform | undefined,
-  handle: string | undefined,
+  handle: string | undefined
 ): string => {
   if (!platform || !handle) return '';
   const opt = getSocialPlatformOption(platform);
@@ -531,7 +536,7 @@ export const getSocialDisplayHandle = (
 
 export const buildSocialUrl = (
   platform: SocialPlatform | undefined,
-  input: string | undefined,
+  input: string | undefined
 ): string => {
   if (!platform) return '';
   const opt = getSocialPlatformOption(platform);
@@ -541,7 +546,10 @@ export const buildSocialUrl = (
   return opt.buildUrl(raw);
 };
 
-export const normalizeSocialHandle = (platform: SocialPlatform | undefined, input: string): string => {
+export const normalizeSocialHandle = (
+  platform: SocialPlatform | undefined,
+  input: string
+): string => {
   if (platform === 'mastodon') return input.trim().replace(/^@+/, '');
   if (platform === 'custom' || platform === 'website') return input.trim();
   return normalizeHandle(input);

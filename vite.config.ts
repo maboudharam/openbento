@@ -37,7 +37,7 @@ const parseMaybeJson = (text: string) => {
   } catch {
     // Some CLIs may print extra logs even with --output json. Try extracting the JSON slice.
     const firstBrace = Math.min(
-      ...[trimmed.indexOf('{'), trimmed.indexOf('[')].filter((n) => n >= 0),
+      ...[trimmed.indexOf('{'), trimmed.indexOf('[')].filter((n) => n >= 0)
     );
     if (!Number.isFinite(firstBrace)) return null;
     const lastBrace = Math.max(trimmed.lastIndexOf('}'), trimmed.lastIndexOf(']'));
@@ -89,7 +89,9 @@ const extractProjectRef = (maybe: any): string | null => {
 };
 
 const extractServiceRoleKey = (maybe: any): string | null => {
-  const list = Array.isArray(maybe) ? maybe : maybe?.keys ?? maybe?.data ?? maybe?.api_keys ?? null;
+  const list = Array.isArray(maybe)
+    ? maybe
+    : (maybe?.keys ?? maybe?.data ?? maybe?.api_keys ?? null);
   if (!Array.isArray(list)) return null;
 
   for (const k of list) {
@@ -173,21 +175,36 @@ const simpleSupabaseSetupPlugin = (): Plugin => {
                 ? `SELECT * FROM public.openbento_analytics_events WHERE site_id = '${siteId.replace(/'/g, "''")}' AND created_at > NOW() - INTERVAL '${days} days' ORDER BY created_at DESC LIMIT 10000`
                 : `SELECT * FROM public.openbento_analytics_events WHERE created_at > NOW() - INTERVAL '${days} days' ORDER BY created_at DESC LIMIT 10000`;
 
-              const { stdout } = await execFileAsync('psql', [
-                '-h', dbHost,
-                '-p', '5432',
-                '-U', 'postgres',
-                '-d', 'postgres',
-                '-t', '-A', '-F', '|',
-                '-c', query
-              ], {
-                env: { ...process.env, PGPASSWORD: dbPassword },
-                timeout: 30000
-              });
+              const { stdout } = await execFileAsync(
+                'psql',
+                [
+                  '-h',
+                  dbHost,
+                  '-p',
+                  '5432',
+                  '-U',
+                  'postgres',
+                  '-d',
+                  'postgres',
+                  '-t',
+                  '-A',
+                  '-F',
+                  '|',
+                  '-c',
+                  query,
+                ],
+                {
+                  env: { ...process.env, PGPASSWORD: dbPassword },
+                  timeout: 30000,
+                }
+              );
 
               // Parse the pipe-delimited output
-              const lines = stdout.trim().split('\n').filter(l => l.trim());
-              const events = lines.map(line => {
+              const lines = stdout
+                .trim()
+                .split('\n')
+                .filter((l) => l.trim());
+              const events = lines.map((line) => {
                 const parts = line.split('|');
                 return {
                   id: parts[0],
@@ -215,13 +232,16 @@ const simpleSupabaseSetupPlugin = (): Plugin => {
                   duration_seconds: parts[22] ? parseInt(parts[22]) : null,
                   scroll_depth: parts[23] ? parseInt(parts[23]) : null,
                   engaged: parts[24] === 't',
-                  block_title: parts[25] || null
+                  block_title: parts[25] || null,
                 };
               });
 
               json(res, 200, { ok: true, events, count: events.length });
             } catch (e: any) {
-              json(res, 500, { ok: false, error: 'Failed to fetch analytics: ' + (e.message || 'Unknown error') });
+              json(res, 500, {
+                ok: false,
+                error: 'Failed to fetch analytics: ' + (e.message || 'Unknown error'),
+              });
             }
             return;
           }
@@ -291,16 +311,25 @@ const simpleSupabaseSetupPlugin = (): Plugin => {
 
             try {
               logs.push('Connecting to database...');
-              const { stdout, stderr } = await execFileAsync('psql', [
-                '-h', dbHost,
-                '-p', '5432',
-                '-U', 'postgres',
-                '-d', 'postgres',
-                '-c', migrationSql
-              ], {
-                env: { ...process.env, PGPASSWORD: dbPassword },
-                timeout: 30000
-              });
+              const { stdout, stderr } = await execFileAsync(
+                'psql',
+                [
+                  '-h',
+                  dbHost,
+                  '-p',
+                  '5432',
+                  '-U',
+                  'postgres',
+                  '-d',
+                  'postgres',
+                  '-c',
+                  migrationSql,
+                ],
+                {
+                  env: { ...process.env, PGPASSWORD: dbPassword },
+                  timeout: 30000,
+                }
+              );
               logs.push('Migration applied successfully!');
               if (stdout) logs.push(stdout);
             } catch (e: any) {
@@ -308,7 +337,7 @@ const simpleSupabaseSetupPlugin = (): Plugin => {
                 ok: false,
                 error: 'Failed to run migration: ' + (e.message || 'Unknown error'),
                 logs,
-                stderr: e.stderr
+                stderr: e.stderr,
               });
               return;
             }
@@ -318,7 +347,7 @@ const simpleSupabaseSetupPlugin = (): Plugin => {
               projectUrl,
               projectRef,
               anonKey: anonKey || null,
-              setupAt: new Date().toISOString()
+              setupAt: new Date().toISOString(),
             };
             fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
             logs.push('Config saved to .supabase-config.json');
@@ -326,7 +355,7 @@ const simpleSupabaseSetupPlugin = (): Plugin => {
             json(res, 200, {
               ok: true,
               logs,
-              config
+              config,
             });
             return;
           }
@@ -356,18 +385,25 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
         });
       };
 
-      const verifyState = async (params: { projectRef: string; adminToken?: string; serviceRoleKey: string }) => {
+      const verifyState = async (params: {
+        projectRef: string;
+        adminToken?: string;
+        serviceRoleKey: string;
+      }) => {
         const supabaseUrl = `https://${params.projectRef}.supabase.co`;
         const checks: Record<string, { ok: boolean; details?: string }> = {};
 
         // Table exists?
         try {
-          const res = await fetch(`${supabaseUrl}/rest/v1/openbento_analytics_events?select=id&limit=1`, {
-            headers: {
-              apikey: params.serviceRoleKey,
-              Authorization: `Bearer ${params.serviceRoleKey}`,
-            },
-          });
+          const res = await fetch(
+            `${supabaseUrl}/rest/v1/openbento_analytics_events?select=id&limit=1`,
+            {
+              headers: {
+                apikey: params.serviceRoleKey,
+                Authorization: `Bearer ${params.serviceRoleKey}`,
+              },
+            }
+          );
           checks.table = { ok: res.ok, details: `${res.status} ${res.statusText}` };
         } catch (e) {
           checks.table = { ok: false, details: e instanceof Error ? e.message : 'Request failed' };
@@ -379,7 +415,10 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
             const res = await fetch(`${supabaseUrl}/functions/v1/${name}`, { method: 'OPTIONS' });
             checks[`fn:${name}`] = { ok: res.ok, details: `${res.status} ${res.statusText}` };
           } catch (e) {
-            checks[`fn:${name}`] = { ok: false, details: e instanceof Error ? e.message : 'Request failed' };
+            checks[`fn:${name}`] = {
+              ok: false,
+              details: e instanceof Error ? e.message : 'Request failed',
+            };
           }
         };
 
@@ -395,11 +434,14 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
               `${supabaseUrl}/functions/v1/openbento-analytics-admin?siteId=${encodeURIComponent('openbento_dev')}&days=7`,
               {
                 headers: { 'x-openbento-admin-token': params.adminToken },
-              },
+              }
             );
             checks.adminAuth = { ok: res.ok, details: `${res.status} ${res.statusText}` };
           } catch (e) {
-            checks.adminAuth = { ok: false, details: e instanceof Error ? e.message : 'Request failed' };
+            checks.adminAuth = {
+              ok: false,
+              details: e instanceof Error ? e.message : 'Request failed',
+            };
           }
         }
 
@@ -417,8 +459,14 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
             const logs: string[] = [];
             const pushLog = (line: string) => logs.push(line);
 
-            const adminToken = typeof body?.adminToken === 'string' && body.adminToken.trim() ? body.adminToken.trim() : randomToken();
-            const region = typeof body?.region === 'string' && body.region.trim() ? body.region.trim() : 'eu-west-1';
+            const adminToken =
+              typeof body?.adminToken === 'string' && body.adminToken.trim()
+                ? body.adminToken.trim()
+                : randomToken();
+            const region =
+              typeof body?.region === 'string' && body.region.trim()
+                ? body.region.trim()
+                : 'eu-west-1';
 
             let projectRef: string | null = null;
             let createdDbPassword: string | null = null;
@@ -437,15 +485,22 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
             } catch {
               json(res, 401, {
                 ok: false,
-                error: 'Supabase CLI is not logged in. Run `supabase login` in your terminal, then retry.',
+                error:
+                  'Supabase CLI is not logged in. Run `supabase login` in your terminal, then retry.',
               });
               return;
             }
 
             if (mode === 'create') {
-              const orgId = typeof body?.orgId === 'string' && body.orgId.trim() ? body.orgId.trim() : pickOrgId(orgs);
+              const orgId =
+                typeof body?.orgId === 'string' && body.orgId.trim()
+                  ? body.orgId.trim()
+                  : pickOrgId(orgs);
               if (!orgId) {
-                json(res, 400, { ok: false, error: 'No Supabase organization found. Create one first, then retry.' });
+                json(res, 400, {
+                  ok: false,
+                  error: 'No Supabase organization found. Create one first, then retry.',
+                });
                 return;
               }
 
@@ -455,7 +510,9 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
                   : `openbento-analytics-${Date.now()}`;
 
               const dbPassword =
-                typeof body?.dbPassword === 'string' && body.dbPassword.trim() ? body.dbPassword.trim() : randomPassword();
+                typeof body?.dbPassword === 'string' && body.dbPassword.trim()
+                  ? body.dbPassword.trim()
+                  : randomPassword();
 
               if (!body?.dbPassword) createdDbPassword = dbPassword;
 
@@ -477,7 +534,12 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
               const parsed = parseMaybeJson(stdout);
               projectRef = extractProjectRef(parsed);
               if (!projectRef) {
-                json(res, 500, { ok: false, error: 'Project created, but could not read project ref from CLI output.', logs, raw: stdout });
+                json(res, 500, {
+                  ok: false,
+                  error: 'Project created, but could not read project ref from CLI output.',
+                  logs,
+                  raw: stdout,
+                });
                 return;
               }
 
@@ -488,7 +550,14 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
               let ready = false;
               for (let i = 0; i < 20; i++) {
                 try {
-                  await runSupabase(['projects', 'api-keys', '--project-ref', projectRef, '--output', 'json']);
+                  await runSupabase([
+                    'projects',
+                    'api-keys',
+                    '--project-ref',
+                    projectRef,
+                    '--output',
+                    'json',
+                  ]);
                   ready = true;
                   break;
                 } catch {
@@ -509,7 +578,9 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
               body.dbPassword = dbPassword;
             } else {
               projectRef =
-                (typeof body?.projectRef === 'string' && body.projectRef.trim() ? body.projectRef.trim() : null) ??
+                (typeof body?.projectRef === 'string' && body.projectRef.trim()
+                  ? body.projectRef.trim()
+                  : null) ??
                 (typeof body?.supabaseUrl === 'string' && body.supabaseUrl.trim()
                   ? parseProjectRefFromSupabaseUrl(body.supabaseUrl.trim())
                   : null);
@@ -517,15 +588,22 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
               if (!projectRef) {
                 json(res, 400, {
                   ok: false,
-                  error: 'Missing project ref. Provide a Supabase URL (https://<ref>.supabase.co) or a project ref.',
+                  error:
+                    'Missing project ref. Provide a Supabase URL (https://<ref>.supabase.co) or a project ref.',
                 });
                 return;
               }
             }
 
-            const dbPassword = typeof body?.dbPassword === 'string' && body.dbPassword.trim() ? body.dbPassword.trim() : null;
+            const dbPassword =
+              typeof body?.dbPassword === 'string' && body.dbPassword.trim()
+                ? body.dbPassword.trim()
+                : null;
             if (!dbPassword) {
-              json(res, 400, { ok: false, error: 'Database password is required to apply migrations (db push).' });
+              json(res, 400, {
+                ok: false,
+                error: 'Database password is required to apply migrations (db push).',
+              });
               return;
             }
 
@@ -536,11 +614,22 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
             await runSupabase(['db', 'push', '--password', dbPassword]);
 
             pushLog('Fetching service role key…');
-            const apiKeysRaw = await runSupabase(['projects', 'api-keys', '--project-ref', projectRef, '--output', 'json']);
+            const apiKeysRaw = await runSupabase([
+              'projects',
+              'api-keys',
+              '--project-ref',
+              projectRef,
+              '--output',
+              'json',
+            ]);
             const apiKeysJson = parseMaybeJson(apiKeysRaw.stdout);
             const serviceRoleKey = extractServiceRoleKey(apiKeysJson);
             if (!serviceRoleKey) {
-              json(res, 500, { ok: false, error: 'Could not find service_role key for this project.', logs });
+              json(res, 500, {
+                ok: false,
+                error: 'Could not find service_role key for this project.',
+                logs,
+              });
               return;
             }
 
@@ -601,15 +690,29 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
               return;
             }
 
-            const apiKeysRaw = await runSupabase(['projects', 'api-keys', '--project-ref', projectRef, '--output', 'json']);
+            const apiKeysRaw = await runSupabase([
+              'projects',
+              'api-keys',
+              '--project-ref',
+              projectRef,
+              '--output',
+              'json',
+            ]);
             const apiKeysJson = parseMaybeJson(apiKeysRaw.stdout);
             const serviceRoleKey = extractServiceRoleKey(apiKeysJson);
             if (!serviceRoleKey) {
-              json(res, 500, { ok: false, error: 'Could not find service_role key for this project.' });
+              json(res, 500, {
+                ok: false,
+                error: 'Could not find service_role key for this project.',
+              });
               return;
             }
 
-            const verified = await verifyState({ projectRef, adminToken: adminToken || undefined, serviceRoleKey });
+            const verified = await verifyState({
+              projectRef,
+              adminToken: adminToken || undefined,
+              serviceRoleKey,
+            });
 
             json(res, 200, {
               ok: true,
@@ -632,23 +735,23 @@ const openbentoSupabaseDevPlugin = (): Plugin => {
 };
 
 export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      // Base URL pour GitHub Pages (utilise le nom du repo)
-      base: process.env.GITHUB_ACTIONS ? '/openbento/' : '/',
-      server: {
-        port: 3000,
-        host: '0.0.0.0',
+  const env = loadEnv(mode, '.', '');
+  return {
+    // Base URL pour GitHub Pages (utilise le nom du repo)
+    base: process.env.GITHUB_ACTIONS ? '/openbento/' : '/',
+    server: {
+      port: 3000,
+      host: '0.0.0.0',
+    },
+    plugins: [react(), simpleSupabaseSetupPlugin(), openbentoSupabaseDevPlugin()],
+    define: {
+      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+    },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, '.'),
       },
-      plugins: [react(), simpleSupabaseSetupPlugin(), openbentoSupabaseDevPlugin()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        }
-      }
-    };
+    },
+  };
 });

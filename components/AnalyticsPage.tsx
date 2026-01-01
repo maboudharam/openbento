@@ -1,10 +1,25 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-  ArrowLeft, BarChart3, Users, MousePointerClick, Clock,
-  TrendingUp, Globe, Monitor, Smartphone, Tablet,
-  ExternalLink, RefreshCw, Calendar, ChevronDown,
-  Eye, Target, Zap, ArrowUpRight, ArrowDownRight
+  ArrowLeft,
+  BarChart3,
+  Users,
+  MousePointerClick,
+  Clock,
+  TrendingUp,
+  Globe,
+  Monitor,
+  Smartphone,
+  Tablet,
+  ExternalLink,
+  RefreshCw,
+  Calendar,
+  ChevronDown,
+  Eye,
+  Target,
+  Zap,
+  ArrowUpRight,
+  ArrowDownRight,
 } from 'lucide-react';
 
 type AnalyticsEvent = {
@@ -58,8 +73,8 @@ const AnalyticsPage: React.FC = () => {
   // Load config on mount and auto-fetch if password is saved
   useEffect(() => {
     fetch('/__openbento/config')
-      .then(r => r.json())
-      .then(data => {
+      .then((r) => r.json())
+      .then((data) => {
         if (data.ok && data.config?.projectUrl) {
           setProjectUrl(data.config.projectUrl);
           // If we have both URL and saved password, auto-fetch
@@ -120,55 +135,68 @@ const AnalyticsPage: React.FC = () => {
 
   // Compute analytics stats
   const stats = useMemo(() => {
-    const pageViews = events.filter(e => e.event_type === 'page_view');
-    const clicks = events.filter(e => e.event_type === 'click');
-    const sessions = events.filter(e => e.event_type === 'session_end');
+    const pageViews = events.filter((e) => e.event_type === 'page_view');
+    const clicks = events.filter((e) => e.event_type === 'click');
+    const sessions = events.filter((e) => e.event_type === 'session_end');
 
-    const uniqueVisitors = new Set(events.map(e => e.visitor_id).filter(Boolean)).size;
+    const uniqueVisitors = new Set(events.map((e) => e.visitor_id).filter(Boolean)).size;
     const totalPageViews = pageViews.length;
     const totalClicks = clicks.length;
 
     // Average session duration
-    const durations = sessions.map(s => s.duration_seconds).filter((d): d is number => d !== null);
-    const avgDuration = durations.length > 0 ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
+    const durations = sessions
+      .map((s) => s.duration_seconds)
+      .filter((d): d is number => d !== null);
+    const avgDuration =
+      durations.length > 0
+        ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
+        : 0;
 
     // Average scroll depth
-    const scrolls = sessions.map(s => s.scroll_depth).filter((d): d is number => d !== null);
-    const avgScroll = scrolls.length > 0 ? Math.round(scrolls.reduce((a, b) => a + b, 0) / scrolls.length) : 0;
+    const scrolls = sessions.map((s) => s.scroll_depth).filter((d): d is number => d !== null);
+    const avgScroll =
+      scrolls.length > 0 ? Math.round(scrolls.reduce((a, b) => a + b, 0) / scrolls.length) : 0;
 
     // Engagement rate
-    const engagedSessions = sessions.filter(s => s.engaged).length;
-    const engagementRate = sessions.length > 0 ? Math.round((engagedSessions / sessions.length) * 100) : 0;
+    const engagedSessions = sessions.filter((s) => s.engaged).length;
+    const engagementRate =
+      sessions.length > 0 ? Math.round((engagedSessions / sessions.length) * 100) : 0;
 
     // Click-through rate
     const ctr = totalPageViews > 0 ? Math.round((totalClicks / totalPageViews) * 100) : 0;
 
     // Traffic sources
     const sources: Record<string, number> = {};
-    pageViews.forEach(e => {
+    pageViews.forEach((e) => {
       let source = 'Direct';
       if (e.utm_source) source = e.utm_source;
       else if (e.referrer) {
         try {
           source = new URL(e.referrer).hostname.replace('www.', '');
-        } catch { source = e.referrer; }
+        } catch {
+          source = e.referrer;
+        }
       }
       sources[source] = (sources[source] || 0) + 1;
     });
 
     // Top clicks
     const clicksByBlock: Record<string, { count: number; title: string; url: string }> = {};
-    clicks.forEach(e => {
+    clicks.forEach((e) => {
       const key = e.block_id || 'unknown';
       if (!clicksByBlock[key]) {
-        clicksByBlock[key] = { count: 0, title: e.block_title || key, url: e.destination_url || '' };
+        clicksByBlock[key] = {
+          count: 0,
+          title: e.block_title || key,
+          url: e.destination_url || '',
+        };
       }
       clicksByBlock[key].count++;
     });
 
     // Device breakdown
     const devices = { desktop: 0, tablet: 0, mobile: 0 };
-    pageViews.forEach(e => {
+    pageViews.forEach((e) => {
       const w = e.screen_w || e.viewport_w || 0;
       if (w >= 1024) devices.desktop++;
       else if (w >= 768) devices.tablet++;
@@ -177,7 +205,7 @@ const AnalyticsPage: React.FC = () => {
 
     // Browser breakdown (from user agent)
     const browsers: Record<string, number> = {};
-    pageViews.forEach(e => {
+    pageViews.forEach((e) => {
       const ua = e.user_agent || '';
       let browser = 'Other';
       if (ua.includes('Chrome') && !ua.includes('Edg')) browser = 'Chrome';
@@ -189,14 +217,14 @@ const AnalyticsPage: React.FC = () => {
 
     // Views by day
     const viewsByDay: Record<string, number> = {};
-    pageViews.forEach(e => {
+    pageViews.forEach((e) => {
       const day = e.created_at.split('T')[0];
       viewsByDay[day] = (viewsByDay[day] || 0) + 1;
     });
 
     // Languages
     const languages: Record<string, number> = {};
-    pageViews.forEach(e => {
+    pageViews.forEach((e) => {
       const lang = (e.language || 'unknown').split('-')[0];
       languages[lang] = (languages[lang] || 0) + 1;
     });
@@ -209,12 +237,20 @@ const AnalyticsPage: React.FC = () => {
       avgScroll,
       engagementRate,
       ctr,
-      sources: Object.entries(sources).sort((a, b) => b[1] - a[1]).slice(0, 10),
-      topClicks: Object.entries(clicksByBlock).sort((a, b) => b[1].count - a[1].count).slice(0, 10),
+      sources: Object.entries(sources)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10),
+      topClicks: Object.entries(clicksByBlock)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 10),
       devices,
-      browsers: Object.entries(browsers).sort((a, b) => b[1] - a[1]).slice(0, 5),
+      browsers: Object.entries(browsers)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5),
       viewsByDay: Object.entries(viewsByDay).sort((a, b) => a[0].localeCompare(b[0])),
-      languages: Object.entries(languages).sort((a, b) => b[1] - a[1]).slice(0, 5),
+      languages: Object.entries(languages)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5),
     };
   }, [events]);
 
@@ -242,7 +278,10 @@ const AnalyticsPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 p-8">
         <div className="max-w-lg mx-auto">
-          <a href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-8">
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-8"
+          >
             <ArrowLeft size={20} />
             Back to Builder
           </a>
@@ -254,14 +293,18 @@ const AnalyticsPage: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
-                <p className="text-gray-500">{projectUrl ? 'Enter your database password' : 'Enter your credentials'}</p>
+                <p className="text-gray-500">
+                  {projectUrl ? 'Enter your database password' : 'Enter your credentials'}
+                </p>
               </div>
             </div>
 
             <div className="space-y-4">
               {!projectUrl && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Supabase Project URL</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Supabase Project URL
+                  </label>
                   <input
                     type="text"
                     value={projectUrl}
@@ -280,7 +323,9 @@ const AnalyticsPage: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Database Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Database Password
+                </label>
                 <input
                   type="password"
                   value={dbPassword}
@@ -289,7 +334,9 @@ const AnalyticsPage: React.FC = () => {
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                   autoFocus={!!projectUrl}
                 />
-                <p className="text-xs text-gray-400 mt-1">Stored in session only (cleared when browser closes)</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Stored in session only (cleared when browser closes)
+                </p>
               </div>
 
               {error && (
@@ -481,9 +528,7 @@ const AnalyticsPage: React.FC = () => {
                   <div key={blockId} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{data.title}</p>
-                      {data.url && (
-                        <p className="text-xs text-gray-400 truncate">{data.url}</p>
-                      )}
+                      {data.url && <p className="text-xs text-gray-400 truncate">{data.url}</p>}
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-bold text-violet-600">{data.count}</span>
@@ -504,9 +549,24 @@ const AnalyticsPage: React.FC = () => {
               Devices
             </h2>
             <div className="space-y-4">
-              <DeviceBar icon={<Monitor size={18} />} label="Desktop" value={stats.devices.desktop} total={stats.totalPageViews} />
-              <DeviceBar icon={<Tablet size={18} />} label="Tablet" value={stats.devices.tablet} total={stats.totalPageViews} />
-              <DeviceBar icon={<Smartphone size={18} />} label="Mobile" value={stats.devices.mobile} total={stats.totalPageViews} />
+              <DeviceBar
+                icon={<Monitor size={18} />}
+                label="Desktop"
+                value={stats.devices.desktop}
+                total={stats.totalPageViews}
+              />
+              <DeviceBar
+                icon={<Tablet size={18} />}
+                label="Tablet"
+                value={stats.devices.tablet}
+                total={stats.totalPageViews}
+              />
+              <DeviceBar
+                icon={<Smartphone size={18} />}
+                label="Mobile"
+                value={stats.devices.mobile}
+                total={stats.totalPageViews}
+              />
             </div>
           </div>
 
@@ -517,7 +577,9 @@ const AnalyticsPage: React.FC = () => {
               {stats.browsers.map(([browser, count]) => (
                 <div key={browser} className="flex items-center justify-between">
                   <span className="text-sm text-gray-700">{browser}</span>
-                  <span className="text-sm font-medium text-gray-900">{count} ({Math.round((count / stats.totalPageViews) * 100)}%)</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {count} ({Math.round((count / stats.totalPageViews) * 100)}%)
+                  </span>
                 </div>
               ))}
             </div>
@@ -530,7 +592,9 @@ const AnalyticsPage: React.FC = () => {
               {stats.languages.map(([lang, count]) => (
                 <div key={lang} className="flex items-center justify-between">
                   <span className="text-sm text-gray-700">{lang.toUpperCase()}</span>
-                  <span className="text-sm font-medium text-gray-900">{count} ({Math.round((count / stats.totalPageViews) * 100)}%)</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {count} ({Math.round((count / stats.totalPageViews) * 100)}%)
+                  </span>
                 </div>
               ))}
             </div>
@@ -591,11 +655,15 @@ const AnalyticsPage: React.FC = () => {
                       {new Date(event.created_at).toLocaleString()}
                     </td>
                     <td className="py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        event.event_type === 'page_view' ? 'bg-blue-100 text-blue-700' :
-                        event.event_type === 'click' ? 'bg-green-100 text-green-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          event.event_type === 'page_view'
+                            ? 'bg-blue-100 text-blue-700'
+                            : event.event_type === 'click'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
                         {event.event_type}
                       </span>
                     </td>
@@ -603,9 +671,11 @@ const AnalyticsPage: React.FC = () => {
                       {event.visitor_id?.slice(0, 12) || '—'}
                     </td>
                     <td className="py-3 text-gray-600 max-w-xs truncate">
-                      {event.event_type === 'click' ? (event.block_title || event.destination_url || '—') :
-                       event.event_type === 'session_end' ? `${event.duration_seconds}s, ${event.scroll_depth}% scroll` :
-                       event.referrer || 'Direct'}
+                      {event.event_type === 'click'
+                        ? event.block_title || event.destination_url || '—'
+                        : event.event_type === 'session_end'
+                          ? `${event.duration_seconds}s, ${event.scroll_depth}% scroll`
+                          : event.referrer || 'Direct'}
                     </td>
                   </tr>
                 ))}
@@ -643,7 +713,9 @@ const MetricCard: React.FC<{
       animate={{ opacity: 1, y: 0 }}
       className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-${large ? '6' : '5'}`}
     >
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${colors[color]}`}>
+      <div
+        className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${colors[color]}`}
+      >
         {icon}
       </div>
       <p className="text-sm text-gray-500 mb-1">{label}</p>

@@ -19,7 +19,13 @@ const ZOOM_STEP = 0.05;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onCancel, onConfirm }) => {
+const ImageCropModal: React.FC<ImageCropModalProps> = ({
+  isOpen,
+  src,
+  title,
+  onCancel,
+  onConfirm,
+}) => {
   const sourceImageRef = useRef<HTMLImageElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const dragRef = useRef<{
@@ -82,9 +88,12 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
     img.src = src;
 
     if (typeof (img as any).decode === 'function') {
-      (img as any).decode().then(finish).catch(() => {
-        // ignore (onload/onerror will handle)
-      });
+      (img as any)
+        .decode()
+        .then(finish)
+        .catch(() => {
+          // ignore (onload/onerror will handle)
+        });
     }
 
     return () => {
@@ -114,7 +123,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
         y: clamp(next.y, -maxY, maxY),
       };
     },
-    [displayed.w, displayed.h, natural],
+    [displayed.w, displayed.h, natural]
   );
 
   useEffect(() => {
@@ -231,7 +240,12 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
     const onMouseMove = (e: MouseEvent) => {
       const drag = mouseDragRef.current;
       if (!drag) return;
-      setOffset(clampOffset({ x: drag.originX + (e.clientX - drag.startX), y: drag.originY + (e.clientY - drag.startY) }));
+      setOffset(
+        clampOffset({
+          x: drag.originX + (e.clientX - drag.startX),
+          y: drag.originY + (e.clientY - drag.startY),
+        })
+      );
     };
 
     const onMouseUp = () => {
@@ -244,7 +258,12 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
       const touch = Array.from(e.changedTouches).find((t) => t.identifier === drag.id);
       if (!touch) return;
       e.preventDefault();
-      setOffset(clampOffset({ x: drag.originX + (touch.clientX - drag.startX), y: drag.originY + (touch.clientY - drag.startY) }));
+      setOffset(
+        clampOffset({
+          x: drag.originX + (touch.clientX - drag.startX),
+          y: drag.originY + (touch.clientY - drag.startY),
+        })
+      );
     };
 
     const onTouchEnd = (e: TouchEvent) => {
@@ -293,8 +312,8 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
     const topLeftX = CROP_SIZE / 2 - displayed.w / 2 + offset.x;
     const topLeftY = CROP_SIZE / 2 - displayed.h / 2 + offset.y;
 
-    const srcX = (-topLeftX) / scale;
-    const srcY = (-topLeftY) / scale;
+    const srcX = -topLeftX / scale;
+    const srcY = -topLeftY / scale;
     const srcW = CROP_SIZE / scale;
     const srcH = CROP_SIZE / scale;
 
@@ -390,8 +409,12 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Zoom</span>
-                  <span className="text-xs font-semibold text-gray-600">{Math.round(zoom * 100)}%</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Zoom
+                  </span>
+                  <span className="text-xs font-semibold text-gray-600">
+                    {Math.round(zoom * 100)}%
+                  </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <button
@@ -447,7 +470,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ isOpen, src, title, onC
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body,
+    document.body
   );
 };
 

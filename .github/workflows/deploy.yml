@@ -5,7 +5,7 @@ on:
   # Déclenché sur push vers la branche main
   push:
     branches: ['main']
-  
+
   # Permet de lancer le workflow manuellement depuis l'onglet Actions
   workflow_dispatch:
 
@@ -61,4 +61,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
