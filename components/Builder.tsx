@@ -18,6 +18,7 @@ import {
   GRID_VERSION,
 } from '../services/storageService';
 import { getSocialPlatformOption, buildSocialUrl, formatFollowerCount } from '../socialPlatforms';
+import { getMobileLayout, MOBILE_GRID_CONFIG } from '../utils/mobileLayout';
 import {
   Download,
   Layout,
@@ -1671,27 +1672,26 @@ const Builder: React.FC<BuilderProps> = ({ onBack }) => {
                               </div>
                             )}
                         </div>
-                        {/* Grid Section - Matches export's mobile layout: single column, stacked blocks */}
+                        {/* Grid Section - Mobile layout: 2 columns adaptive */}
                         <div className="p-4 relative z-10">
                           <div
-                            className="grid gap-5 pb-8"
+                            className="grid pb-8"
                             style={{
-                              gridTemplateColumns: '1fr',
-                              gridAutoRows: '64px',
-                              gridAutoFlow: 'dense',
+                              gridTemplateColumns: `repeat(${MOBILE_GRID_CONFIG.columns}, 1fr)`,
+                              gridAutoRows: `${MOBILE_GRID_CONFIG.rowHeight}px`,
+                              gap: `${MOBILE_GRID_CONFIG.gap}px`,
                             }}
                           >
                             {sortedMobileBlocks.map((block) => {
-                              // In mobile export, blocks stack vertically in a single column
-                              // grid-column: auto, grid-row: auto (CSS resets positioning)
-                              // Row span is preserved
+                              // Calculate mobile layout based on desktop dimensions
+                              const mobileLayout = getMobileLayout(block);
                               return (
                                 <div
                                   key={block.id}
                                   className="pointer-events-none"
                                   style={{
-                                    gridColumn: 'auto',
-                                    gridRow: 'auto',
+                                    gridColumn: `span ${mobileLayout.colSpan}`,
+                                    gridRow: `span ${mobileLayout.rowSpan}`,
                                   }}
                                 >
                                   <Block
