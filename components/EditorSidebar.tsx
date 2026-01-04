@@ -267,7 +267,9 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
   };
 
   return (
-    <div
+    <aside
+      role="complementary"
+      aria-label="Block editor sidebar"
       className={`fixed right-0 top-0 h-screen w-full md:w-[400px] bg-white z-50 shadow-xl transform transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] flex flex-col border-l border-gray-200
 	        ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
     >
@@ -282,6 +284,8 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
           </p>
         </div>
         <button
+          type="button"
+          aria-label="Close sidebar"
           onClick={closeEdit}
           className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-400 hover:text-gray-600"
         >
@@ -299,10 +303,14 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
               {editingBlock.type !== BlockType.SPACER &&
                 editingBlock.type !== BlockType.SOCIAL_ICON && (
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    <label
+                      htmlFor="block-title-input"
+                      className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2"
+                    >
                       Title
                     </label>
                     <input
+                      id="block-title-input"
                       type="text"
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-medium"
                       value={editingBlock.title || ''}
@@ -316,49 +324,55 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
               {editingBlock.type === BlockType.SOCIAL_ICON && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-                      Platform
-                    </label>
-                    <div className="grid grid-cols-4 gap-1.5 max-h-40 overflow-y-auto">
-                      {SOCIAL_PLATFORM_OPTIONS.map((platform) => {
-                        const active = platform.id === editingBlock.socialPlatform;
-                        const BrandIcon = platform.brandIcon;
-                        const FallbackIcon = platform.icon;
-                        return (
-                          <button
-                            key={platform.id}
-                            type="button"
-                            onClick={() =>
-                              updateBlock({ ...editingBlock, socialPlatform: platform.id })
-                            }
-                            className={`p-1.5 rounded-lg border transition-all flex flex-col items-center gap-0.5 ${active ? 'bg-violet-600 text-white border-violet-600 shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
-                            title={platform.label}
-                          >
-                            {BrandIcon ? (
-                              <span style={{ color: active ? '#ffffff' : platform.brandColor }}>
-                                <BrandIcon size={14} />
+                    <fieldset>
+                      <legend className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                        Platform
+                      </legend>
+                      <div className="grid grid-cols-4 gap-1.5 max-h-40 overflow-y-auto">
+                        {SOCIAL_PLATFORM_OPTIONS.map((platform) => {
+                          const active = platform.id === editingBlock.socialPlatform;
+                          const BrandIcon = platform.brandIcon;
+                          const FallbackIcon = platform.icon;
+                          return (
+                            <button
+                              key={platform.id}
+                              type="button"
+                              onClick={() =>
+                                updateBlock({ ...editingBlock, socialPlatform: platform.id })
+                              }
+                              className={`p-1.5 rounded-lg border transition-all flex flex-col items-center gap-0.5 ${active ? 'bg-violet-600 text-white border-violet-600 shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                              title={platform.label}
+                            >
+                              {BrandIcon ? (
+                                <span style={{ color: active ? '#ffffff' : platform.brandColor }}>
+                                  <BrandIcon size={14} />
+                                </span>
+                              ) : (
+                                <span className={active ? 'text-white' : 'text-gray-500'}>
+                                  <FallbackIcon size={14} />
+                                </span>
+                              )}
+                              <span className="text-[8px] font-medium leading-tight truncate w-full text-center">
+                                {platform.label}
                               </span>
-                            ) : (
-                              <span className={active ? 'text-white' : 'text-gray-500'}>
-                                <FallbackIcon size={14} />
-                              </span>
-                            )}
-                            <span className="text-[8px] font-medium leading-tight truncate w-full text-center">
-                              {platform.label}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    <label
+                      htmlFor="social-icon-handle-input"
+                      className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1"
+                    >
                       {getSocialPlatformOption(editingBlock.socialPlatform)?.kind === 'url'
                         ? 'URL'
                         : 'Handle'}
                     </label>
                     <input
+                      id="social-icon-handle-input"
                       type="text"
                       className="w-full bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:outline-none transition-all font-medium text-gray-600"
                       value={editingBlock.socialHandle || ''}
@@ -373,13 +387,15 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                   </div>
 
                   {/* Icon Color Style */}
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                  <fieldset>
+                    <legend className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
                       Icon Style
-                    </label>
+                    </legend>
                     <div className="flex gap-2">
                       <button
                         type="button"
+                        aria-label="Set icon color to brand color"
+                        aria-pressed={editingBlock.textColor === 'text-brand'}
                         onClick={() => updateBlock({ ...editingBlock, textColor: 'text-brand' })}
                         className={`flex-1 py-2 px-3 rounded-lg border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
                           !editingBlock.textColor || editingBlock.textColor === 'text-brand'
@@ -399,6 +415,8 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                       </button>
                       <button
                         type="button"
+                        aria-label="Set icon color to Grey"
+                        aria-pressed={editingBlock.textColor === 'text-gray-700'}
                         onClick={() => updateBlock({ ...editingBlock, textColor: 'text-gray-700' })}
                         className={`flex-1 py-2 px-3 rounded-lg border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
                           editingBlock.textColor === 'text-gray-700'
@@ -411,6 +429,8 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                       </button>
                       <button
                         type="button"
+                        aria-label="Set icon color to Black"
+                        aria-pressed={editingBlock.textColor === 'text-black'}
                         onClick={() => updateBlock({ ...editingBlock, textColor: 'text-black' })}
                         className={`flex-1 py-2 px-3 rounded-lg border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
                           editingBlock.textColor === 'text-black'
@@ -422,7 +442,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                         Black
                       </button>
                     </div>
-                  </div>
+                  </fieldset>
 
                   {editingBlock.socialHandle &&
                     buildSocialUrl(editingBlock.socialPlatform, editingBlock.socialHandle) && (
@@ -451,6 +471,8 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                 <div className="space-y-4">
                   <div className="p-1 bg-gray-100 rounded-xl flex">
                     <button
+                      type="button"
+                      aria-pressed={!isYouTubeActive}
                       className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${!isYouTubeActive ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
                       onClick={() =>
                         updateBlock({
@@ -466,6 +488,8 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                       Platforms
                     </button>
                     <button
+                      type="button"
+                      aria-pressed={isYouTubeActive}
                       className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${isYouTubeActive ? 'bg-red-500 shadow text-white' : 'text-gray-500 hover:text-red-600'}`}
                       onClick={() =>
                         updateBlock({
@@ -483,38 +507,46 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                   {!isYouTubeActive && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                          Platform
-                        </label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {SOCIAL_PLATFORM_OPTIONS.map((platform) => {
-                            const active = platform.id === resolvedSocialPlatform;
-                            return (
-                              <button
-                                key={platform.id}
-                                type="button"
-                                onClick={() => handleSelectSocialPlatform(platform.id)}
-                                className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-2 ${active ? 'bg-gray-900 text-white border-gray-900 shadow-md' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
-                                title={platform.label}
-                              >
-                                <platform.icon
-                                  size={16}
-                                  className={active ? 'text-white' : 'text-gray-500'}
-                                />
-                                <span className="text-[11px] font-semibold leading-tight truncate">
-                                  {platform.label}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
+                        <fieldset>
+                          <legend className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Platform
+                          </legend>
+                          <div className="grid grid-cols-3 gap-2">
+                            {SOCIAL_PLATFORM_OPTIONS.map((platform) => {
+                              const active = platform.id === resolvedSocialPlatform;
+                              return (
+                                <button
+                                  key={platform.id}
+                                  type="button"
+                                  aria-label={platform.label}
+                                  aria-pressed={active}
+                                  onClick={() => handleSelectSocialPlatform(platform.id)}
+                                  className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-2 ${active ? 'bg-gray-900 text-white border-gray-900 shadow-md' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                                  title={platform.label}
+                                >
+                                  <platform.icon
+                                    size={16}
+                                    className={active ? 'text-white' : 'text-gray-500'}
+                                  />
+                                  <span className="text-[11px] font-semibold leading-tight truncate">
+                                    {platform.label}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </fieldset>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                        <label
+                          htmlFor="social-block-handle-input"
+                          className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2"
+                        >
                           {resolvedSocialOption?.kind === 'url' ? 'URL' : 'Username / Handle'}
                         </label>
                         <input
+                          id="social-block-handle-input"
                           type="text"
                           className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-medium text-gray-600"
                           value={resolvedSocialHandle}
@@ -541,44 +573,48 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
 
                       {/* Icon Color Style for SOCIAL blocks */}
                       <div>
-                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-                          Icon Color
-                        </label>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateBlock({ ...editingBlock, textColor: 'text-brand' })
-                            }
-                            className={`flex-1 py-2 px-3 rounded-lg border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
-                              editingBlock.textColor === 'text-brand'
-                                ? 'bg-violet-600 text-white border-violet-600'
-                                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
-                            }`}
-                          >
-                            <span
-                              className="w-3 h-3 rounded-full"
-                              style={{
-                                background:
-                                  getSocialPlatformOption(editingBlock.socialPlatform)
-                                    ?.brandColor || '#6366f1',
-                              }}
-                            />
-                            Color
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => updateBlock({ ...editingBlock, textColor: undefined })}
-                            className={`flex-1 py-2 px-3 rounded-lg border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
-                              !editingBlock.textColor || editingBlock.textColor === 'text-black'
-                                ? 'bg-gray-800 text-white border-gray-800'
-                                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
-                            }`}
-                          >
-                            <span className="w-3 h-3 rounded-full bg-gray-600" />
-                            Default
-                          </button>
-                        </div>
+                        <fieldset>
+                          <legend className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Icon Color
+                          </legend>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              aria-pressed={editingBlock.textColor === 'text-brand'}
+                              onClick={() =>
+                                updateBlock({ ...editingBlock, textColor: 'text-brand' })
+                              }
+                              className={`flex-1 py-2 px-3 rounded-lg border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                                editingBlock.textColor === 'text-brand'
+                                  ? 'bg-violet-600 text-white border-violet-600'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                              }`}
+                            >
+                              <span
+                                className="w-3 h-3 rounded-full"
+                                style={{
+                                  background:
+                                    getSocialPlatformOption(editingBlock.socialPlatform)
+                                      ?.brandColor || '#6366f1',
+                                }}
+                              />
+                              Color
+                            </button>
+                            <button
+                              type="button"
+                              aria-pressed={editingBlock.textColor === undefined}
+                              onClick={() => updateBlock({ ...editingBlock, textColor: undefined })}
+                              className={`flex-1 py-2 px-3 rounded-lg border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                                !editingBlock.textColor || editingBlock.textColor === 'text-black'
+                                  ? 'bg-gray-800 text-white border-gray-800'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                              }`}
+                            >
+                              <span className="w-3 h-3 rounded-full bg-gray-600" />
+                              Default
+                            </button>
+                          </div>
+                        </fieldset>
                       </div>
                     </div>
                   )}
@@ -590,7 +626,10 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                 <div className="p-5 bg-red-50 rounded-2xl border border-red-100 space-y-5">
                   {/* A. Channel Config */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex justify-between">
+                    <label
+                      htmlFor="youtube-channel-id-input"
+                      className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex justify-between"
+                    >
                       Channel ID
                       <a
                         href="https://commentpicker.com/youtube-channel-id.php"
@@ -603,6 +642,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                     </label>
                     <div className="flex gap-2">
                       <input
+                        id="youtube-channel-id-input"
                         type="text"
                         className="w-full bg-white border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-red-500/20 focus:outline-none text-sm placeholder-gray-400 font-mono"
                         value={editingBlock.channelId || ''}
@@ -612,6 +652,8 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                         placeholder="UC..."
                       />
                       <button
+                        type="button"
+                        aria-label="Fetch latest videos"
                         onClick={fetchLatestFromRSS}
                         disabled={isFetching || !editingBlock.channelId}
                         className="bg-red-500 text-white px-4 rounded-xl font-bold text-xs hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[44px]"
@@ -630,12 +672,14 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                   </div>
 
                   {/* B. Display Mode Toggle (Always Visible) */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  <fieldset>
+                    <legend className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                       Video Layout
-                    </label>
+                    </legend>
                     <div className="grid grid-cols-3 gap-2">
                       <button
+                        type="button"
+                        aria-pressed={editingBlock.youtubeMode === 'single'}
                         onClick={() =>
                           updateBlock({
                             ...editingBlock,
@@ -649,6 +693,8 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                         <Square size={20} /> Single
                       </button>
                       <button
+                        type="button"
+                        aria-pressed={editingBlock.youtubeMode === 'grid'}
                         onClick={() =>
                           updateBlock({
                             ...editingBlock,
@@ -662,6 +708,8 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                         <Grid3X3 size={20} /> Grid
                       </button>
                       <button
+                        type="button"
+                        aria-pressed={editingBlock.youtubeMode === 'list'}
                         onClick={() =>
                           updateBlock({
                             ...editingBlock,
@@ -675,7 +723,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                         <List size={20} /> List
                       </button>
                     </div>
-                  </div>
+                  </fieldset>
                 </div>
               )}
 
@@ -688,18 +736,22 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                   {(editingBlock.type === BlockType.MEDIA ||
                     editingBlock.type === BlockType.LINK) && (
                     <div className="mb-4">
-                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                      <label
+                        htmlFor="block-img-upload"
+                        className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2"
+                      >
                         Upload Image{' '}
                         {editingBlock.type === BlockType.LINK ? '(Optional Background)' : ''}
                       </label>
-                      <div
-                        className="relative group cursor-pointer border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-black transition-colors"
-                        onClick={() => document.getElementById('block-img-upload')?.click()}
+                      <label
+                        htmlFor="block-img-upload"
+                        className="relative group cursor-pointer border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-black transition-colors block"
+                        aria-label="Upload block image"
                       >
                         <input
                           id="block-img-upload"
                           type="file"
-                          className="hidden"
+                          className="sr-only"
                           accept="image/*"
                           onChange={handleBlockImageUpload}
                         />
@@ -712,7 +764,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                             Image Selected
                           </div>
                         )}
-                      </div>
+                      </label>
                     </div>
                   )}
 
@@ -783,42 +835,49 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
 
                 {/* Solid Colors */}
                 <div className="space-y-2">
-                  <span className="text-[10px] font-semibold text-gray-400 uppercase">
-                    Solid Colors
-                  </span>
-                  <div className="grid grid-cols-5 gap-3">
-                    {BASE_COLORS.filter((c) => c.type === 'solid').map((c) => {
-                      const active = isSelectedColor(c);
-                      return (
-                        <button
-                          key={c.name}
-                          onClick={() =>
-                            updateBlock({
-                              ...editingBlock,
-                              color: c.bg,
-                              textColor: c.text,
-                              customBackground: undefined,
-                            })
-                          }
-                          className={`h-10 rounded-full border shadow-sm transition-all transform active:scale-95 ${c.bg} ${active ? 'ring-2 ring-offset-2 ring-gray-900 scale-110' : 'hover:scale-105'} flex items-center justify-center`}
-                          title={c.name}
-                        >
-                          {active && (
-                            <CheckCircle2
-                              size={16}
-                              className={c.text === 'text-white' ? 'text-white' : 'text-black'}
-                            />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <fieldset>
+                    <legend className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                      Solid Colors
+                    </legend>
+                    <div className="grid grid-cols-5 gap-3">
+                      {BASE_COLORS.filter((c) => c.type === 'solid').map((c) => {
+                        const active = isSelectedColor(c);
+                        return (
+                          <button
+                            type="button"
+                            aria-label={`Set background color to ${c.name}`}
+                            aria-pressed={active}
+                            key={c.name}
+                            onClick={() =>
+                              updateBlock({
+                                ...editingBlock,
+                                color: c.bg,
+                                textColor: c.text,
+                                customBackground: undefined,
+                              })
+                            }
+                            className={`h-10 rounded-full border shadow-sm transition-all transform active:scale-95 ${c.bg} ${active ? 'ring-2 ring-offset-2 ring-gray-900 scale-110' : 'hover:scale-105'} flex items-center justify-center`}
+                            title={c.name}
+                          >
+                            {active && (
+                              <CheckCircle2
+                                size={16}
+                                className={c.text === 'text-white' ? 'text-white' : 'text-black'}
+                              />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </fieldset>
                 </div>
               </div>
             )}
 
             <div className="pt-6 border-t border-gray-100">
               <button
+                type="button"
+                aria-label={`Remove block ${editingBlock.title}`}
                 onClick={() => onDelete(editingBlock.id)}
                 className="w-full py-3 text-red-500 font-medium hover:bg-red-50 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
@@ -863,6 +922,8 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                   },
                 ].map((btn) => (
                   <button
+                    type="button"
+                    aria-label={`Add ${btn.label} Block`}
                     key={btn.type}
                     onClick={() => addBlock(btn.type)}
                     className="flex flex-col items-center gap-2 p-4 bg-white border border-gray-100 rounded-2xl hover:border-gray-200 hover:shadow-lg transition-all group"
@@ -888,7 +949,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
           </p>
         </div>
       )}
-    </div>
+    </aside>
   );
 };
 

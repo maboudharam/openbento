@@ -105,8 +105,12 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
     <div ref={dropdownRef} className="relative">
       {/* Trigger Button */}
       <button
+        type="button"
+        aria-label="Open bento projects menu"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-sm font-medium text-gray-700"
+        className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <FolderOpen size={16} className="text-gray-500" />
         <span className="max-w-[120px] truncate">{activeBentoName}</span>
@@ -120,6 +124,8 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            role="menu"
+            aria-label="Bento projects menu"
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -146,11 +152,15 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
                     }`}
                   >
                     <button
+                      type="button"
+                      role="menuitem"
+                      aria-label={`Switch to ${bento.name} project`}
+                      aria-current={bento.id === activeBentoId ? 'true' : undefined}
                       onClick={() => {
                         onBentoChange(bento);
                         setIsOpen(false);
                       }}
-                      className="flex-1 flex items-center gap-3 text-left min-w-0"
+                      className="flex-1 flex items-center gap-3 text-left min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded-lg"
                     >
                       <div
                         className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${
@@ -178,8 +188,10 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
                       )}
                     </button>
                     <button
+                      type="button"
+                      aria-label={`Delete ${bento.name} project`}
                       onClick={(e) => handleDeleteBento(e, bento.id)}
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all shrink-0 focus:outline-none focus:ring-2 focus:ring-red-500"
                       title="Delete bento"
                     >
                       <Trash2 size={14} />
@@ -196,6 +208,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
                   <input
                     ref={inputRef}
                     type="text"
+                    aria-label="New bento project name"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -204,18 +217,22 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
                   />
                   <div className="flex gap-2 mt-2">
                     <button
+                      type="button"
+                      aria-label="Create new bento project"
                       onClick={handleCreateBento}
                       disabled={!newName.trim()}
-                      className="flex-1 px-3 py-1.5 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="flex-1 px-3 py-1.5 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                       Create
                     </button>
                     <button
+                      type="button"
+                      aria-label="Cancel creating new bento"
                       onClick={() => {
                         setIsCreating(false);
                         setNewName('');
                       }}
-                      className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       Cancel
                     </button>
@@ -223,8 +240,11 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
                 </div>
               ) : (
                 <button
+                  type="button"
+                  role="menuitem"
+                  aria-label="Create new bento project"
                   onClick={() => setIsCreating(true)}
-                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left"
+                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded-lg"
                 >
                   <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center">
                     <Plus size={16} className="text-white" />

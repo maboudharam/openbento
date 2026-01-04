@@ -303,8 +303,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  aria-controls={`${tab.id}-panel`}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                     activeTab === tab.id
                       ? 'bg-gray-100 text-gray-900 border-b-2 border-gray-900 -mb-[2px]'
                       : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
@@ -333,6 +337,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         </label>
                         <input
                           type="text"
+                          aria-label="Project name"
                           value={bentoName || ''}
                           onChange={(e) => onBentoNameChange(e.target.value)}
                           className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:outline-none transition-all"
@@ -369,16 +374,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         <div className="mt-3 flex gap-2">
                           <button
                             type="button"
+                            aria-label="Upload avatar image"
                             onClick={() => avatarInputRef.current?.click()}
-                            className="px-3 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-2"
+                            className="px-3 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
                             <Upload size={14} />
                             Upload
                           </button>
                           <button
                             type="button"
+                            aria-label="Reset avatar to default"
                             onClick={resetAvatar}
-                            className="px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-100 transition-colors"
+                            className="px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
                             Reset
                           </button>
@@ -391,6 +398,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             Name
                           </label>
                           <input
+                            type="text"
+                            aria-label="Your name"
                             value={profile.name}
                             onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                             className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-semibold text-gray-800"
@@ -402,6 +411,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             Avatar URL
                           </label>
                           <input
+                            type="text"
+                            aria-label="Avatar URL"
                             value={profile.avatarUrl || ''}
                             onChange={(e) => setProfile({ ...profile, avatarUrl: e.target.value })}
                             className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-mono text-xs text-gray-700"
@@ -416,6 +427,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             Bio
                           </label>
                           <textarea
+                            aria-label="Bio"
                             value={profile.bio}
                             onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                             className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-black/5 focus:border-black focus:outline-none transition-all font-medium text-gray-700 h-24 resize-none"
@@ -543,6 +555,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         <div className="relative">
                           <input
                             type="color"
+                            aria-label="Background color picker"
                             value={profile.backgroundColor || '#F7F7F7'}
                             onChange={(e) =>
                               setProfile({
@@ -551,7 +564,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 backgroundImage: undefined,
                               })
                             }
-                            className="w-12 h-12 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-violet-400 transition-colors"
+                            className="w-12 h-12 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-violet-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                             title="Open color picker"
                           />
                         </div>
@@ -562,6 +575,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             <span className="text-sm text-gray-400 font-mono">#</span>
                             <input
                               type="text"
+                              aria-label="Background color hex code"
                               value={(profile.backgroundColor || '#F7F7F7').replace('#', '')}
                               onChange={(e) => {
                                 const val = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 6);
@@ -574,7 +588,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 }
                               }}
                               placeholder="F7F7F7"
-                              className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono uppercase focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                              className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono uppercase focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:outline-none"
                               maxLength={6}
                             />
                           </div>
@@ -607,6 +621,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                           <button
                             key={color}
                             type="button"
+                            aria-label={`Set background color to ${color}`}
+                            aria-pressed={
+                              profile.backgroundColor === color && !profile.backgroundImage
+                            }
                             onClick={() =>
                               setProfile({
                                 ...profile,
@@ -614,7 +632,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 backgroundImage: undefined,
                               })
                             }
-                            className={`w-7 h-7 rounded-lg border-2 transition-all ${
+                            className={`w-7 h-7 rounded-lg border-2 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
                               profile.backgroundColor === color && !profile.backgroundImage
                                 ? 'border-violet-500 scale-110 shadow-md'
                                 : 'border-gray-200 hover:border-gray-400'
@@ -634,18 +652,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       <div className="flex gap-2">
                         <input
                           type="text"
+                          aria-label="Background image URL"
                           value={profile.backgroundImage || ''}
                           onChange={(e) =>
                             setProfile({ ...profile, backgroundImage: e.target.value || undefined })
                           }
                           placeholder="https://example.com/image.jpg"
-                          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:outline-none"
                         />
-                        <label className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer transition-colors">
+                        <label
+                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-blue-500"
+                          aria-label="Upload background image"
+                        >
                           <Upload size={16} className="text-gray-600" />
                           <input
                             type="file"
                             accept="image/*"
+                            aria-label="Upload background image file"
                             className="hidden"
                             onChange={(e) => {
                               const file = e.target.files?.[0];
@@ -665,8 +688,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         {profile.backgroundImage && (
                           <button
                             type="button"
+                            aria-label="Remove background image"
                             onClick={() => setProfile({ ...profile, backgroundImage: undefined })}
-                            className="px-3 py-2 bg-red-50 hover:bg-red-100 rounded-lg text-red-600 transition-colors"
+                            className="px-3 py-2 bg-red-50 hover:bg-red-100 rounded-lg text-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
                             title="Remove background image"
                           >
                             <X size={16} />
@@ -697,13 +721,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         </div>
                         <input
                           type="range"
+                          aria-label={`Background blur amount: ${profile.backgroundBlur || 0} pixels`}
                           min="0"
                           max="20"
                           value={profile.backgroundBlur || 0}
                           onChange={(e) =>
                             setProfile({ ...profile, backgroundBlur: parseInt(e.target.value) })
                           }
-                          className="w-full accent-violet-500"
+                          className="w-full accent-violet-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     )}
@@ -720,6 +745,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     </h3>
                     <button
                       type="button"
+                      aria-label="Add social account"
                       onClick={() => {
                         // Set newPlatform to first available platform not already added
                         const availablePlatforms = SOCIAL_PLATFORM_OPTIONS.filter(
@@ -730,7 +756,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         }
                         setIsAddingSocial(true);
                       }}
-                      className="flex items-center gap-1 text-xs font-semibold text-violet-600 hover:text-violet-700 transition-colors"
+                      className="flex items-center gap-1 text-xs font-semibold text-violet-600 hover:text-violet-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                     >
                       <Plus size={14} />
                       Add
@@ -771,6 +797,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             <p className="text-sm font-semibold text-gray-900">{option.label}</p>
                             <input
                               type="text"
+                              aria-label={`${option.label} handle`}
                               value={account.handle}
                               onChange={(e) => updateSocialHandle(account.platform, e.target.value)}
                               placeholder={option.placeholder}
@@ -780,6 +807,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                           <div className="shrink-0 w-20">
                             <input
                               type="text"
+                              aria-label={`${option.label} follower count`}
                               value={account.followerCount || ''}
                               onChange={(e) =>
                                 updateFollowerCount(account.platform, e.target.value)
@@ -820,6 +848,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       <div className="p-3 bg-violet-50 border border-violet-200 rounded-xl space-y-3">
                         <div className="flex gap-2">
                           <select
+                            aria-label="Select social platform"
                             value={newPlatform}
                             onChange={(e) => setNewPlatform(e.target.value as SocialPlatform)}
                             className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:outline-none"
@@ -835,6 +864,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         </div>
                         <input
                           type="text"
+                          aria-label="Social account handle"
                           value={newHandle}
                           onChange={(e) => setNewHandle(e.target.value)}
                           placeholder={
@@ -847,19 +877,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         <div className="flex gap-2">
                           <button
                             type="button"
+                            aria-label="Cancel adding social account"
                             onClick={() => {
                               setIsAddingSocial(false);
                               setNewHandle('');
                             }}
-                            className="flex-1 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                            className="flex-1 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
                             Cancel
                           </button>
                           <button
                             type="button"
+                            aria-label="Add social account"
                             onClick={addSocialAccount}
                             disabled={!newHandle.trim()}
-                            className="flex-1 py-2 bg-violet-600 text-white rounded-lg text-sm font-semibold hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 py-2 bg-violet-600 text-white rounded-lg text-sm font-semibold hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
                             Add Account
                           </button>
@@ -931,10 +963,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       </label>
                       <input
                         type="text"
+                        aria-label="Supabase project URL"
                         value={supabaseProjectUrl}
                         onChange={(e) => setSupabaseProjectUrl(e.target.value)}
                         placeholder="https://xxxxx.supabase.co"
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-all"
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-all focus:outline-none"
                       />
                     </div>
 
@@ -944,10 +977,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       </label>
                       <input
                         type="password"
+                        aria-label="Supabase database password"
                         value={supabaseDbPassword}
                         onChange={(e) => setSupabaseDbPassword(e.target.value)}
                         placeholder="Your Supabase DB password"
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-all"
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-all focus:outline-none"
                       />
                       <p className="text-xs text-gray-400 mt-1">Used only for setup, not stored.</p>
                     </div>
@@ -958,10 +992,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       </label>
                       <input
                         type="text"
+                        aria-label="Supabase publishable key"
                         value={supabaseAnonKey}
                         onChange={(e) => setSupabaseAnonKey(e.target.value)}
                         placeholder="eyJhbGciOiJIUzI1NiIs..."
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-all font-mono text-xs"
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-all font-mono text-xs focus:outline-none"
                       />
                       <p className="text-xs text-gray-400 mt-1">
                         Safe to use in client-side code. Never use the secret/service_role key here.
@@ -971,6 +1006,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     {/* Save Config button */}
                     <button
                       type="button"
+                      aria-label="Save analytics configuration"
                       onClick={() => {
                         if (!supabaseProjectUrl || !supabaseAnonKey) return;
                         fetch('/__openbento/config', {
@@ -998,7 +1034,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         });
                       }}
                       disabled={!supabaseProjectUrl || !supabaseAnonKey}
-                      className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                       <CheckCircle size={18} />
                       Save Config
@@ -1007,9 +1043,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     {/* Setup Database button */}
                     <button
                       type="button"
+                      aria-label="Setup analytics database"
                       onClick={handleSupabaseSetup}
                       disabled={setupLoading || !supabaseProjectUrl || !supabaseDbPassword}
-                      className="w-full py-2.5 bg-violet-100 text-violet-700 rounded-xl font-semibold hover:bg-violet-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                      className="w-full py-2.5 bg-violet-100 text-violet-700 rounded-xl font-semibold hover:bg-violet-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                       {setupLoading ? (
                         <>
@@ -1063,6 +1100,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       </span>
                       <input
                         type="checkbox"
+                        aria-label="Enable analytics on export"
                         checked={profile.analytics?.enabled || false}
                         onChange={(e) =>
                           setProfile({
@@ -1099,8 +1137,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     </div>
                     <button
                       type="button"
+                      aria-label="Apply JSON changes"
                       onClick={handleJsonSave}
-                      className="px-4 py-2 bg-violet-600 text-white rounded-lg text-xs font-semibold hover:bg-violet-700 transition-colors"
+                      className="px-4 py-2 bg-violet-600 text-white rounded-lg text-xs font-semibold hover:bg-violet-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                       Apply Changes
                     </button>
@@ -1113,6 +1152,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   )}
 
                   <textarea
+                    aria-label="Raw JSON configuration"
                     value={jsonText}
                     onChange={(e) => setJsonText(e.target.value)}
                     className="w-full h-[400px] bg-gray-900 text-green-400 font-mono text-xs p-4 rounded-xl border-0 focus:ring-2 focus:ring-violet-500 focus:outline-none resize-none"
@@ -1143,8 +1183,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* Footer */}
             <div className="p-6 pt-4 border-t border-gray-100">
               <button
+                type="button"
+                aria-label="Close settings modal"
                 onClick={onClose}
-                className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors shadow-sm"
+                className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 Close
               </button>
