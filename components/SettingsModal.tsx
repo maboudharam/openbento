@@ -967,21 +967,72 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   {/* OG Image */}
                   <div className="space-y-2">
                     <label htmlFor="og-image" className="block text-sm font-medium text-gray-700">
-                      Image URL
+                      Image
                     </label>
-                    <input
-                      id="og-image"
-                      type="url"
-                      value={profile.openGraph?.image || ''}
-                      onChange={(e) =>
-                        setProfile({
-                          ...profile,
-                          openGraph: { ...profile.openGraph, image: e.target.value },
-                        })
-                      }
-                      placeholder="https://example.com/image.png"
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        id="og-image"
+                        type="url"
+                        value={
+                          profile.openGraph?.image?.startsWith('data:')
+                            ? ''
+                            : profile.openGraph?.image || ''
+                        }
+                        onChange={(e) =>
+                          setProfile({
+                            ...profile,
+                            openGraph: { ...profile.openGraph, image: e.target.value },
+                          })
+                        }
+                        placeholder="https://example.com/image.png"
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <label
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer transition-colors flex items-center gap-2 text-sm font-medium text-gray-700"
+                        title="Upload image"
+                      >
+                        <Upload size={16} />
+                        <span>Upload</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          aria-label="Upload OpenGraph image"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                setProfile({
+                                  ...profile,
+                                  openGraph: {
+                                    ...profile.openGraph,
+                                    image: reader.result as string,
+                                  },
+                                });
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                      {profile.openGraph?.image && (
+                        <button
+                          type="button"
+                          aria-label="Remove image"
+                          onClick={() =>
+                            setProfile({
+                              ...profile,
+                              openGraph: { ...profile.openGraph, image: undefined },
+                            })
+                          }
+                          className="px-3 py-2 bg-red-50 hover:bg-red-100 rounded-lg text-red-600 transition-colors"
+                          title="Remove image"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-400">Recommended size: 1200x630 pixels</p>
                     {profile.openGraph?.image && (
                       <div className="mt-2 p-2 bg-gray-50 rounded-lg">
